@@ -2,216 +2,175 @@
 
 import type { ReactNode } from "react";
 
-export type ViewId = "panel" | "ay" | "yil" | "liste";
+export type ViewId = "panel" | "ay" | "yil";
 
 type Props = {
   view: ViewId;
-  counts: { bugun: number; geciken: number; toplam: number };
-  locked: boolean;
-  open: boolean;
   onSelect: (view: ViewId) => void;
-  onClose: () => void;
-  onUnlock: () => void;
-  onImport: (text: string) => void;
-  onPickFile: () => void;
+  onOpenSettings: () => void;
+  settingsOpen: boolean;
 };
 
 const ITEMS: {
   id: ViewId;
   label: string;
-  hint: string;
   icon: ReactNode;
   accent: string;
 }[] = [
   {
     id: "panel",
-    label: "Panel",
-    hint: "Bugün ve özet",
+    label: "Ana Sayfa",
     accent: "bg-gold",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-        <rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor" />
-        <rect x="13" y="3" width="8" height="5" rx="2" fill="currentColor" />
-        <rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor" />
-        <rect x="13" y="10" width="8" height="11" rx="2" fill="currentColor" />
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+        <path
+          d="M3.5 11 12 4l8.5 7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.5 10.5V20h13v-9.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10 20v-5h4v5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
   },
   {
     id: "ay",
-    label: "Takvim",
-    hint: "Ay görünümü",
+    label: "Ajanda",
     accent: "bg-sky",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
         <rect
-          x="3"
+          x="3.5"
           y="5"
-          width="18"
-          height="16"
-          rx="3"
+          width="17"
+          height="15"
+          rx="2"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.4"
+          strokeWidth="2.2"
         />
-        <path d="M3 10h18" stroke="currentColor" strokeWidth="2.4" />
-        <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M3.5 10h17" stroke="currentColor" strokeWidth="2.2" />
+        <path
+          d="M8 3v4M16 3v4"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <rect x="7" y="13" width="3.5" height="3.5" fill="currentColor" />
       </svg>
     ),
   },
   {
     id: "yil",
-    label: "Yıl",
-    hint: "On iki ay",
-    accent: "bg-coral",
+    label: "Almanak",
+    accent: "bg-lilac",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-        <rect x="3" y="4" width="7" height="7" rx="1.5" fill="currentColor" />
-        <rect x="14" y="4" width="7" height="7" rx="1.5" fill="currentColor" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    id: "liste",
-    label: "Kayıtlar",
-    hint: "Tüm defter",
-    accent: "bg-mint",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-        <path
-          d="M4 6h16M4 12h16M4 18h10"
-          stroke="currentColor"
-          strokeWidth="2.6"
-          strokeLinecap="round"
-        />
+      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+        <rect x="3.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />
+        <rect x="13.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />
+        <rect x="3.5" y="13.5" width="7" height="7" rx="1.2" fill="currentColor" />
+        <rect x="13.5" y="13.5" width="7" height="7" rx="1.2" fill="currentColor" />
       </svg>
     ),
   },
 ];
 
-export function Sidebar({
-  view,
-  counts,
-  locked,
-  open,
-  onSelect,
-  onClose,
-  onUnlock,
-  onPickFile,
-}: Props) {
+function RailButton({
+  label,
+  active,
+  accent,
+  onClick,
+  children,
+}: {
+  label: string;
+  active: boolean;
+  accent: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
-    <>
-      {open ? (
-        <button
-          type="button"
-          aria-label="Menüyü kapat"
-          onClick={onClose}
-          className="anim-fade fixed inset-0 z-40 bg-ink/30 lg:hidden"
-        />
-      ) : null}
-
-      <aside
-        className={`scroll-thin fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col gap-5 overflow-y-auto border-r-[3px] border-ink bg-shell px-4 py-5 transition-transform lg:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } no-print`}
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-current={active ? "page" : undefined}
+      className={`press-sm group relative flex h-12 w-12 items-center justify-center rounded-md nb ${
+        active ? `${accent} shadow-nb-sm` : "bg-card hover:bg-tint"
+      }`}
+    >
+      {children}
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-sm nb bg-ink px-2.5 py-1 text-xs font-bold text-paper opacity-0 transition-opacity duration-150 group-hover:opacity-100"
       >
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2.5">
-            <span className="nb flex h-10 w-10 items-center justify-center rounded-md bg-ink text-lg font-bold text-gold shadow-nb-xs">
-              A
-            </span>
-            <span className="text-xl font-bold tracking-[-0.04em]">ALMANAK</span>
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Menüyü kapat"
-            className="nb-thin rounded-md bg-card px-2 py-1 text-sm font-bold lg:hidden"
-          >
-            ×
-          </button>
-        </div>
+        {label}
+      </span>
+    </button>
+  );
+}
 
-        <nav className="flex flex-col gap-2">
-          {ITEMS.map((item, position) => {
-            const active = item.id === view;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelect(item.id)}
-                aria-current={active ? "page" : undefined}
-                style={{ animationDelay: `${position * 55}ms` }}
-                className={`anim-rise nb press-sm flex items-center gap-3 rounded-md px-3 py-2.5 text-left font-bold ${
-                  active
-                    ? `${item.accent} shadow-nb-sm`
-                    : "bg-card/70 shadow-none hover:bg-card"
-                }`}
-              >
-                <span className="shrink-0">{item.icon}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm leading-tight">{item.label}</span>
-                  <span className="block text-[11px] font-medium text-ink/80">
-                    {item.hint}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+export function Sidebar({ view, onSelect, onOpenSettings, settingsOpen }: Props) {
+  return (
+    <aside className="no-print fixed inset-y-0 left-0 z-40 flex w-[76px] flex-col items-center gap-3 border-r-2 border-ink bg-shell py-4">
+      <div
+        aria-hidden
+        className="mb-1 flex h-12 w-12 items-center justify-center rounded-md border-2 border-dashed border-ink/35"
+      />
 
-        <div className="nb rounded-lg bg-card px-3 py-3 shadow-nb-sm">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-            Bugünün durumu
-          </p>
-          <dl className="mt-2 space-y-1.5 text-sm font-bold">
-            <div className="flex items-center justify-between">
-              <dt>Bugün</dt>
-              <dd className="tabular">{counts.bugun}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className={counts.geciken > 0 ? "text-rust" : undefined}>
-                Geciken
-              </dt>
-              <dd className="tabular">{counts.geciken}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt>Toplam kayıt</dt>
-              <dd className="tabular">{counts.toplam}</dd>
-            </div>
-          </dl>
-        </div>
+      <nav className="flex flex-col gap-2.5">
+        {ITEMS.map((item) => (
+          <RailButton
+            key={item.id}
+            label={item.label}
+            active={item.id === view}
+            accent={item.accent}
+            onClick={() => onSelect(item.id)}
+          >
+            {item.icon}
+          </RailButton>
+        ))}
+      </nav>
 
-        <div className="mt-auto space-y-2">
-          {locked ? (
-            <button
-              type="button"
-              onClick={onUnlock}
-              className="nb press-sm flex w-full items-center justify-center gap-2 rounded-md bg-coral px-3 py-2 text-sm font-bold text-ink shadow-nb-sm"
-            >
-              Kilitli, anahtar gir
-            </button>
-          ) : null}
-          <a
-            href="/api/backup"
-            className="nb press-sm flex w-full items-center justify-center rounded-md bg-card px-3 py-2 text-sm font-bold shadow-nb-sm"
-          >
-            Yedek al
-          </a>
-          <button
-            type="button"
-            onClick={onPickFile}
-            className="nb press-sm flex w-full items-center justify-center rounded-md bg-card px-3 py-2 text-sm font-bold shadow-nb-sm"
-          >
-            Yedek yükle
-          </button>
-          <p className="pt-1 text-[11px] font-medium leading-snug text-ink/80">
-            Veriler bu bilgisayardaki JSON dosyasında durur.
-          </p>
-        </div>
-      </aside>
-    </>
+      <div className="mt-auto">
+        <RailButton
+          label="Ayarlar"
+          active={settingsOpen}
+          accent="bg-mint"
+          onClick={onOpenSettings}
+        >
+          <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+            <circle
+              cx="12"
+              cy="12"
+              r="3.2"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            />
+            <path
+              d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </RailButton>
+      </div>
+    </aside>
   );
 }

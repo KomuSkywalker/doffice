@@ -28,19 +28,22 @@ npm start
 
 ## Görünümler
 
-Sol menü dört bölüme ayrılır, altında bugünün sayıları ve yedek işlemleri
-durur. Dar ekranda menü çekmece olarak açılır.
+Sol kenarda ince bir ikon rayı var. İkonun üzerine gelince adı yazar, en
+altta ayarlar durur.
 
-- **Panel**: bugün, geciken, yedi gün ve ay sayıları. Bugünün programı,
-  gecikenler listesi ve yaklaşan kayıtlar.
-- **Takvim**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
+- **Ana Sayfa**: bugün, geciken, yedi gün ve ay sayıları. Bugünün
+  programı, gecikenler listesi ve yaklaşan kayıtlar.
+- **Ajanda**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
   etiketleriyle görünür.
-- **Yıl**: on iki ay tek ekranda, kayıtlı günler işaretli. Altında yıl
+- **Almanak**: on iki ay tek ekranda, kayıtlı günler işaretli. Altında yıl
   özeti, etiket dağılımı ve sıradaki kayıtlar.
-- **Kayıtlar**: defterin tamamı. Kapsam (tümü, bugün ve sonrası, geçmiş,
-  tamamlananlar) ve etiket filtreleriyle aya göre gruplanır.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
+- **Ayarlar**: yedek alma, yedek yükleme ve yazma kilidi. Rayın en
+  altındaki dişli açar.
+
+Rayın üstündeki kesik çizgili kare logo yeri. Logo 48x48 piksellik kare
+alana oturur, dosya gelince oraya yerleşir.
 
 ## Kayıt alanları
 
@@ -60,23 +63,22 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 
 | Tuş | İş |
 | --- | --- |
-| p | Panel |
-| m | Takvim |
-| y | Yıl |
-| l | Kayıtlar |
+| p | Ana Sayfa |
+| a | Ajanda |
+| y | Almanak |
 | t | Bugüne döner |
 | n | Yeni kayıt |
-| Ok tuşları | Takvimde gün seçimini gezdirir |
+| Ok tuşları | Ajandada gün seçimini gezdirir |
 | Enter | Seçili günü açar |
 | / | Aramaya odaklanır |
-| Esc | Paneli, menüyü veya aramayı kapatır |
+| Esc | Açık paneli veya aramayı kapatır |
 
 ## Veri ve yedek
 
 - Kayıtlar `data/events.json` içinde tutulur ve `.gitignore` ile repo
   dışında bırakılır, kişisel veri GitHub'a gitmez.
 - `data/events.sample.json` repoda durur, ilk kurulumda örnek içerik verir.
-- Sol menüdeki **Yedek al** tüm kayıtları JSON indirir.
+- Ayarlardaki **Yedek al** tüm kayıtları JSON indirir.
 - **Yedek yükle** seçilen JSON ile mevcut kayıtların yerine geçer,
   geçersiz satırlar atlanır.
 

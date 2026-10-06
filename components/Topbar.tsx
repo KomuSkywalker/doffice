@@ -20,14 +20,12 @@ type Props = {
   onQueryChange: (value: string) => void;
   onPickResult: (key: string) => void;
   onNew: () => void;
-  onOpenMenu: () => void;
 };
 
 const TITLES: Record<ViewId, string> = {
-  panel: "Panel",
-  ay: "Takvim",
-  yil: "Yıl görünümü",
-  liste: "Kayıtlar",
+  panel: "Ana Sayfa",
+  ay: "Ajanda",
+  yil: "Almanak",
 };
 
 export function Topbar({
@@ -44,7 +42,6 @@ export function Topbar({
   onQueryChange,
   onPickResult,
   onNew,
-  onOpenMenu,
 }: Props) {
   const showPeriod = view === "ay" || view === "yil";
   const heading =
@@ -52,21 +49,11 @@ export function Topbar({
       ? `${MONTH_NAMES[month]} ${year}`
       : view === "yil"
         ? String(year)
-        : view === "liste"
-          ? "Defterin tamamı"
-          : formatLong(today);
+        : formatLong(today);
 
   return (
     <header className="no-print mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
       <div className="flex items-start gap-3">
-        <button
-          type="button"
-          onClick={onOpenMenu}
-          aria-label="Menüyü aç"
-          className="nb press-sm mt-1 rounded-md bg-card px-3 py-2 text-sm font-bold shadow-nb-sm lg:hidden"
-        >
-          ☰
-        </button>
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/80">
             {TITLES[view]}

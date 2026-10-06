@@ -97,6 +97,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
         <Card
           title="Bugünün programı"
           accent="bg-sky"
+          className="min-w-0"
           action={
             <button
               type="button"
@@ -165,7 +166,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
           </div>
         </Card>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {overdue.length > 0 ? (
             <Card title="Gecikenler" accent="bg-coral">
               <ul className="divide-y-2 divide-ink/10 px-2 py-1.5">

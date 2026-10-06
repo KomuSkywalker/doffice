@@ -22,8 +22,8 @@ import type { AlmanakEvent, EventDraft } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
 import { KeyPrompt } from "./KeyPrompt";
-import { ListView } from "./ListView";
 import { MonthView } from "./MonthView";
+import { SettingsDialog } from "./SettingsDialog";
 import { Sidebar, type ViewId } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { YearSummary } from "./YearSummary";
@@ -53,7 +53,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
   const [events, setEvents] = useState(initialEvents);
   const [view, setView] = useState<ViewId>("panel");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [cursor, setCursor] = useState(() => {
     const parsed = parseKey(serverToday);
     return { year: parsed.year, month: parsed.month };
@@ -212,18 +212,6 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   const results = useMemo(() => searchEvents(events, query), [events, query]);
   const dayEvents = useMemo(() => eventsOn(events, selected), [events, selected]);
 
-  const counts = useMemo(() => {
-    const todayList = eventsOn(events, today);
-    const overdue = events.filter(
-      (event) => event.repeat === "yok" && !event.done && event.date < today,
-    );
-    return {
-      bugun: todayList.length,
-      geciken: overdue.length,
-      toplam: events.length,
-    };
-  }, [events, today]);
-
   const openDay = useCallback((key: string) => {
     const parsed = parseKey(key);
     setCursor({ year: parsed.year, month: parsed.month });
@@ -259,7 +247,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   }, []);
 
   const startNewRecord = useCallback(() => {
-    if (view === "panel" || view === "liste") {
+    if (view === "panel") {
       setSelected(today);
       const parsed = parseKey(today);
       setCursor({ year: parsed.year, month: parsed.month });
@@ -269,7 +257,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
   const pickView = useCallback((next: ViewId) => {
     setView(next);
-    setMenuOpen(false);
+    setSettingsOpen(false);
   }, []);
 
   useEffect(() => {
@@ -282,7 +270,6 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
       if (event.key === "Escape") {
         if (query.length > 0) setQuery("");
-        if (menuOpen) setMenuOpen(false);
         if (typing) target?.blur();
         return;
       }
@@ -295,12 +282,11 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         return;
       }
 
-      if (panelOpen || keyPromptOpen) return;
+      if (panelOpen || keyPromptOpen || settingsOpen) return;
 
       if (event.key === "p") setView("panel");
-      else if (event.key === "m") setView("ay");
+      else if (event.key === "a") setView("ay");
       else if (event.key === "y") setView("yil");
-      else if (event.key === "l") setView("liste");
       else if (event.key === "t") goToday();
       else if (event.key === "n") {
         event.preventDefault();
@@ -330,10 +316,10 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   }, [
     goToday,
     keyPromptOpen,
-    menuOpen,
     moveSelection,
     panelOpen,
     query,
+    settingsOpen,
     startNewRecord,
     view,
   ]);
@@ -342,14 +328,9 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
     <div className="relative min-h-screen">
       <Sidebar
         view={view}
-        counts={counts}
-        locked={locked && !hasKey}
-        open={menuOpen}
         onSelect={pickView}
-        onClose={() => setMenuOpen(false)}
-        onUnlock={() => setKeyPromptOpen(true)}
-        onImport={(text) => void importBackup(text)}
-        onPickFile={() => fileRef.current?.click()}
+        onOpenSettings={() => setSettingsOpen(true)}
+        settingsOpen={settingsOpen}
       />
 
       <input
@@ -366,7 +347,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         }}
       />
 
-      <div className="lg:pl-[264px]">
+      <div className="pl-[76px]">
         <div className="mx-auto w-full max-w-[1520px] px-4 py-6 sm:px-8 sm:py-8">
           <Topbar
             view={view}
@@ -382,7 +363,6 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
             onQueryChange={setQuery}
             onPickResult={openDay}
             onNew={startNewRecord}
-            onOpenMenu={() => setMenuOpen(true)}
           />
 
           <div key={view} className="anim-view">
@@ -427,16 +407,12 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
                 />
             </div>
           ) : null}
-
-            {view === "liste" ? (
-              <ListView events={events} today={today} onSelect={openDay} />
-            ) : null}
           </div>
 
           <p className="no-print mt-6 hidden text-xs font-medium leading-relaxed text-ink/60 lg:block">
-            Kısayollar: p panel, m takvim, y yıl, l kayıtlar, t bugün, n yeni
-            kayıt, eğik çizgi arama. Takvimde ok tuşlarıyla gün gezer, Enter ile
-            günü açarsın.
+            Kısayollar: p ana sayfa, a ajanda, y almanak, t bugün, n yeni kayıt,
+            eğik çizgi arama. Ajandada ok tuşlarıyla gün gezer, Enter ile günü
+            açarsın.
           </p>
         </div>
       </div>
@@ -453,6 +429,17 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
           onUpdate={updateEvent}
           onDelete={removeEvent}
           onToggleDone={toggleDone}
+        />
+      ) : null}
+
+      {settingsOpen ? (
+        <SettingsDialog
+          locked={locked}
+          hasKey={hasKey}
+          total={events.length}
+          onClose={() => setSettingsOpen(false)}
+          onUnlock={() => setKeyPromptOpen(true)}
+          onPickFile={() => fileRef.current?.click()}
         />
       ) : null}
 
