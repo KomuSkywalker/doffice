@@ -4,16 +4,20 @@ import path from "node:path";
 import {
   DEFAULT_AVAILABILITY,
   DEFAULT_DURATION,
+  DEFAULT_ROUTINE_END,
+  DEFAULT_ROUTINE_START,
   linkIsLive,
   type Appointment,
   type AppNotification,
   type Availability,
   type DofficeEvent,
   type EventDraft,
+  type Routine,
+  type RoutineDraft,
   type ShareLink,
   type StoreDoc,
 } from "./types";
-import { isEventShape } from "./validate";
+import { isEventShape, isRoutineShape } from "./validate";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -35,6 +39,7 @@ function blobToken() {
 function emptyDoc(): StoreDoc {
   return {
     events: [],
+    routines: [],
     appointments: [],
     notifications: [],
     availability: { ...DEFAULT_AVAILABILITY },
@@ -65,6 +70,29 @@ function normalizeEvent(row: Record<string, unknown>): DofficeEvent {
   };
 }
 
+function normalizeRoutine(row: Record<string, unknown>): Routine {
+  const now = new Date().toISOString();
+  const days = Array.isArray(row.days)
+    ? row.days
+        .map(Number)
+        .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    : [];
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    days: [...new Set(days)].sort((a, b) => a - b),
+    start: typeof row.start === "string" ? row.start : DEFAULT_ROUTINE_START,
+    end: typeof row.end === "string" ? row.end : DEFAULT_ROUTINE_END,
+    tag: (row.tag as Routine["tag"]) ?? "genel",
+    note: typeof row.note === "string" ? row.note : null,
+    from: typeof row.from === "string" ? row.from : null,
+    until: typeof row.until === "string" ? row.until : null,
+    active: row.active !== false,
+    createdAt: typeof row.createdAt === "string" ? row.createdAt : now,
+    updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : now,
+  };
+}
+
 function normalizeDoc(parsed: unknown): StoreDoc {
   const doc = emptyDoc();
   if (Array.isArray(parsed)) {
@@ -80,6 +108,11 @@ function normalizeDoc(parsed: unknown): StoreDoc {
     doc.events = row.events
       .filter(isEventShape)
       .map((item) => normalizeEvent(item as unknown as Record<string, unknown>));
+  }
+  if (Array.isArray(row.routines)) {
+    doc.routines = row.routines
+      .filter(isRoutineShape)
+      .map((item) => normalizeRoutine(item as unknown as Record<string, unknown>));
   }
   if (Array.isArray(row.appointments)) {
     doc.appointments = row.appointments as Appointment[];
@@ -242,11 +275,69 @@ export function deleteEvent(id: string) {
   });
 }
 
-export function replaceEvents(events: DofficeEvent[]) {
+export function replaceEvents(events: DofficeEvent[], routines: Routine[] | null) {
   return mutate(async (doc) => {
     doc.events = events;
+    if (routines) doc.routines = routines;
     await writeDoc(doc);
     return events;
+  });
+}
+
+export async function listRoutines(): Promise<Routine[]> {
+  return (await readDoc()).routines;
+}
+
+export function createRoutine(draft: RoutineDraft) {
+  return mutate(async (doc) => {
+    const now = new Date().toISOString();
+    const routine: Routine = {
+      id: randomUUID(),
+      title: draft.title,
+      days: draft.days,
+      start: draft.start,
+      end: draft.end,
+      tag: draft.tag,
+      note: draft.note,
+      from: draft.from,
+      until: draft.until,
+      active: draft.active,
+      createdAt: now,
+      updatedAt: now,
+    };
+    doc.routines = [...doc.routines, routine];
+    await writeDoc(doc);
+    return routine;
+  });
+}
+
+export function updateRoutine(id: string, draft: Partial<RoutineDraft>) {
+  return mutate(async (doc) => {
+    const current = doc.routines.find((routine) => routine.id === id);
+    if (!current) return null;
+    const updated: Routine = {
+      ...current,
+      ...draft,
+      note: draft.note === undefined ? current.note : (draft.note ?? null),
+      from: draft.from === undefined ? current.from : (draft.from ?? null),
+      until: draft.until === undefined ? current.until : (draft.until ?? null),
+      updatedAt: new Date().toISOString(),
+    };
+    doc.routines = doc.routines.map((routine) =>
+      routine.id === id ? updated : routine,
+    );
+    await writeDoc(doc);
+    return updated;
+  });
+}
+
+export function deleteRoutine(id: string) {
+  return mutate(async (doc) => {
+    const exists = doc.routines.some((routine) => routine.id === id);
+    if (!exists) return false;
+    doc.routines = doc.routines.filter((routine) => routine.id !== id);
+    await writeDoc(doc);
+    return true;
   });
 }
 

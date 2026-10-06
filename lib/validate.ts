@@ -8,6 +8,8 @@ import {
   type DofficeEvent,
   type EventDraft,
   type Repeat,
+  type Routine,
+  type RoutineDraft,
   type TagId,
 } from "./types";
 
@@ -220,4 +222,123 @@ export function parseAvailability(input: unknown): AvailabilityResult {
       note,
     },
   };
+}
+
+export function isRoutineShape(value: unknown): value is Routine {
+  if (typeof value !== "object" || value === null) return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.id === "string" &&
+    typeof row.title === "string" &&
+    Array.isArray(row.days) &&
+    isValidTime(row.start) &&
+    isValidTime(row.end) &&
+    TAG_IDS.includes(row.tag as TagId)
+  );
+}
+
+export type RoutineResult =
+  | { ok: true; value: RoutineDraft }
+  | { ok: false; error: string };
+
+const ROUTINE_TITLE_LIMIT = 120;
+const ROUTINE_NOTE_LIMIT = 300;
+
+export function parseRoutine(input: unknown, partial: boolean): RoutineResult {
+  if (typeof input !== "object" || input === null) {
+    return { ok: false, error: "Geçersiz istek gövdesi." };
+  }
+  const body = input as Record<string, unknown>;
+  const draft: Partial<RoutineDraft> = {};
+
+  if (body.title !== undefined || !partial) {
+    const title = asTrimmed(body.title);
+    if (title.length === 0) {
+      return { ok: false, error: "Rutin adı boş olamaz." };
+    }
+    if (title.length > ROUTINE_TITLE_LIMIT) {
+      return {
+        ok: false,
+        error: `Rutin adı en fazla ${ROUTINE_TITLE_LIMIT} karakter.`,
+      };
+    }
+    draft.title = title;
+  }
+
+  if (body.days !== undefined || !partial) {
+    const days = Array.isArray(body.days)
+      ? body.days
+          .map(Number)
+          .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+      : [];
+    if (days.length === 0) {
+      return { ok: false, error: "En az bir gün seç." };
+    }
+    draft.days = [...new Set(days)].sort((a, b) => a - b);
+  }
+
+  if (body.start !== undefined || !partial) {
+    if (!isValidTime(body.start)) {
+      return { ok: false, error: "Başlangıç saati SS:DD biçiminde olmalı." };
+    }
+    draft.start = body.start;
+  }
+
+  if (body.end !== undefined || !partial) {
+    if (!isValidTime(body.end)) {
+      return { ok: false, error: "Bitiş saati SS:DD biçiminde olmalı." };
+    }
+    draft.end = body.end;
+  }
+
+  if (
+    draft.start !== undefined &&
+    draft.end !== undefined &&
+    draft.start >= draft.end
+  ) {
+    return { ok: false, error: "Bitiş saati başlangıçtan sonra olmalı." };
+  }
+
+  if (body.tag !== undefined || !partial) {
+    const tag = body.tag ?? "genel";
+    if (!TAG_IDS.includes(tag as TagId)) {
+      return { ok: false, error: "Bilinmeyen etiket." };
+    }
+    draft.tag = tag as TagId;
+  }
+
+  if (body.note !== undefined || !partial) {
+    const note = body.note === null ? "" : asTrimmed(body.note);
+    if (note.length > ROUTINE_NOTE_LIMIT) {
+      return { ok: false, error: `Not en fazla ${ROUTINE_NOTE_LIMIT} karakter.` };
+    }
+    draft.note = note.length === 0 ? null : note;
+  }
+
+  for (const field of ["from", "until"] as const) {
+    if (body[field] === undefined && partial) continue;
+    const raw = body[field];
+    if (raw === null || asTrimmed(raw).length === 0) {
+      draft[field] = null;
+      continue;
+    }
+    if (!isValidKey(raw)) {
+      return { ok: false, error: "Tarih YYYY-AA-GG biçiminde olmalı." };
+    }
+    draft[field] = raw;
+  }
+
+  if (draft.from && draft.until && draft.from > draft.until) {
+    return { ok: false, error: "Son gün ilk günden sonra olmalı." };
+  }
+
+  if (body.active !== undefined || !partial) {
+    const active = body.active === undefined ? true : body.active;
+    if (typeof active !== "boolean") {
+      return { ok: false, error: "Durum değeri boolean olmalı." };
+    }
+    draft.active = active;
+  }
+
+  return { ok: true, value: draft as RoutineDraft };
 }

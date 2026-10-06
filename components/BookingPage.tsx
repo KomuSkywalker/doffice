@@ -12,8 +12,8 @@ import { durationLabel } from "@/lib/types";
 import { Logo } from "./Logo";
 import { Button, Field, inputClass } from "./ui";
 
-type Slot = { time: string; endTime: string };
-type Day = { key: string; slots: Slot[] };
+type Slot = { time: string; endTime: string; free: boolean };
+type Day = { key: string; slots: Slot[]; free: number };
 
 type Payload = {
   month: string;
@@ -131,6 +131,7 @@ export function BookingPage({
   };
 
   const activeDay = data.days.find((day) => day.key === selectedDay) ?? null;
+  const freeTotal = data.days.reduce((total, day) => total + day.free, 0);
 
   if (done) {
     return (
@@ -213,13 +214,18 @@ export function BookingPage({
             </p>
           ) : data.days.length === 0 ? (
             <p className="nb-thin rounded-md border-dashed bg-tint/60 px-4 py-8 text-center text-sm font-bold">
-              Bu ayda boş saat kalmadı. Sonraki aya bak.
+              Bu ayda açık gün kalmadı. Sonraki aya bak.
+            </p>
+          ) : freeTotal === 0 ? (
+            <p className="nb-thin rounded-md border-dashed bg-tint/60 px-4 py-8 text-center text-sm font-bold">
+              Bu ayın bütün saatleri dolu. Sonraki aya bak.
             </p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {data.days.map((day) => {
                 const parts = parseKey(day.key);
                 const active = day.key === selectedDay;
+                const full = day.free === 0;
                 return (
                   <li key={day.key}>
                     <button
@@ -229,7 +235,11 @@ export function BookingPage({
                         setSelectedSlot(null);
                       }}
                       className={`press-sm nb flex min-w-[76px] flex-col items-center rounded-md px-2.5 py-2 ${
-                        active ? "bg-gold shadow-nb-sm" : "bg-card hover:bg-tint"
+                        active
+                          ? "bg-gold shadow-nb-sm"
+                          : full
+                            ? "bg-tint"
+                            : "bg-card hover:bg-tint"
                       }`}
                     >
                       <span className="tabular text-lg font-bold leading-none">
@@ -239,7 +249,7 @@ export function BookingPage({
                         {WEEKDAY_SHORT[weekdayOfKey(day.key)]}
                       </span>
                       <span className="tabular mt-1 text-[11px] font-medium text-muted">
-                        {day.slots.length} saat
+                        {full ? "dolu" : `${day.free} boş`}
                       </span>
                     </button>
                   </li>
@@ -263,11 +273,19 @@ export function BookingPage({
                 <li key={slot.time}>
                   <button
                     type="button"
+                    disabled={!slot.free}
+                    aria-label={
+                      slot.free
+                        ? `${slot.time} boş`
+                        : `${slot.time} dolu`
+                    }
                     onClick={() => setSelectedSlot(slot.time)}
                     className={`chip-pop tabular nb-thin rounded-sm px-3 py-1.5 text-sm font-bold ${
-                      slot.time === selectedSlot
-                        ? "bg-gold shadow-nb-xs"
-                        : "bg-card hover:bg-tint"
+                      !slot.free
+                        ? "cursor-not-allowed bg-tint text-muted line-through"
+                        : slot.time === selectedSlot
+                          ? "bg-gold shadow-nb-xs"
+                          : "bg-card hover:bg-tint"
                     }`}
                   >
                     {slot.time}
@@ -275,6 +293,16 @@ export function BookingPage({
                 </li>
               ))}
             </ul>
+
+            {activeDay.free === 0 ? (
+              <p className="nb-thin rounded-md bg-tint px-3 py-2 text-sm font-bold">
+                Bu günün bütün saatleri dolu. Başka bir gün seç.
+              </p>
+            ) : (
+              <p className="text-[11px] font-medium text-muted">
+                Üstü çizili saatler dolu, seçilemez.
+              </p>
+            )}
 
             {selectedSlot ? (
               <form

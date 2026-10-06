@@ -8,13 +8,17 @@ import {
   durationLabel,
   linkIsLive,
   type Availability,
+  type Routine,
+  type RoutineDraft,
   type ShareLink,
 } from "@/lib/types";
+import { RoutineManager } from "./RoutineManager";
 import { Button, Field, FieldGroup, inputClass } from "./ui";
 
 type Props = {
   availability: Availability;
   links: ShareLink[];
+  routines: Routine[];
   total: number;
   pending: boolean;
   onClose: () => void;
@@ -22,12 +26,16 @@ type Props = {
   onSave: (value: Availability) => Promise<boolean>;
   onCreateLink: (label: string, lifetimeDays: number) => Promise<boolean>;
   onRevokeLink: (id: string) => void;
+  onCreateRoutine: (draft: RoutineDraft) => Promise<boolean>;
+  onUpdateRoutine: (id: string, draft: Partial<RoutineDraft>) => Promise<boolean>;
+  onDeleteRoutine: (id: string) => Promise<boolean>;
   onLogout: () => void;
 };
 
 export function SettingsDialog({
   availability,
   links,
+  routines,
   total,
   pending,
   onClose,
@@ -35,6 +43,9 @@ export function SettingsDialog({
   onSave,
   onCreateLink,
   onRevokeLink,
+  onCreateRoutine,
+  onUpdateRoutine,
+  onDeleteRoutine,
   onLogout,
 }: Props) {
   const [days, setDays] = useState<number[]>(availability.days);
@@ -240,6 +251,19 @@ export function SettingsDialog({
                 })}
               </ul>
             )}
+          </section>
+
+          <section className="space-y-3 border-t-2 border-ink/10 pt-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+              Günlük rutinler
+            </h3>
+            <RoutineManager
+              routines={routines}
+              pending={pending}
+              onCreate={onCreateRoutine}
+              onUpdate={onUpdateRoutine}
+              onDelete={onDeleteRoutine}
+            />
           </section>
 
           <section className="space-y-3 border-t-2 border-ink/10 pt-4">

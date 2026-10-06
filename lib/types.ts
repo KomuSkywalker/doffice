@@ -21,6 +21,7 @@ export type DofficeEvent = {
   done: boolean;
   createdAt: string;
   updatedAt: string;
+  routineId?: string;
 };
 
 export type EventDraft = {
@@ -32,6 +33,33 @@ export type EventDraft = {
   tag?: TagId;
   repeat?: Repeat;
   done?: boolean;
+};
+
+export type Routine = {
+  id: string;
+  title: string;
+  days: number[];
+  start: string;
+  end: string;
+  tag: TagId;
+  note: string | null;
+  from: string | null;
+  until: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RoutineDraft = {
+  title: string;
+  days: number[];
+  start: string;
+  end: string;
+  tag: TagId;
+  note: string | null;
+  from: string | null;
+  until: string | null;
+  active: boolean;
 };
 
 export type AppointmentStatus = "bekliyor" | "onaylandi" | "reddedildi";
@@ -80,6 +108,7 @@ export type ShareLink = {
 
 export type StoreDoc = {
   events: DofficeEvent[];
+  routines: Routine[];
   appointments: Appointment[];
   notifications: AppNotification[];
   availability: Availability;
@@ -109,6 +138,10 @@ export const DEFAULT_AVAILABILITY: Availability = {
 };
 
 export const DEFAULT_DURATION = 60;
+
+export const DEFAULT_ROUTINE_START = "13:00";
+
+export const DEFAULT_ROUTINE_END = "17:00";
 
 export const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 

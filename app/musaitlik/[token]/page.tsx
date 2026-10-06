@@ -29,9 +29,12 @@ export default async function TokenPage({
   const month = `${parts.year}-${String(parts.month + 1).padStart(2, "0")}`;
 
   const days = availableDays(
-    doc.availability,
-    doc.events,
-    doc.appointments,
+    {
+      availability: doc.availability,
+      events: doc.events,
+      appointments: doc.appointments,
+      routines: doc.routines,
+    },
     now.key,
     month,
     now.key,

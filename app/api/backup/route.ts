@@ -1,9 +1,9 @@
 import { requestAuthorized, unauthorizedResponse } from "@/lib/session";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { listEvents, replaceEvents, StorageError } from "@/lib/store";
-import { isEventShape } from "@/lib/validate";
+import { readDoc, replaceEvents, StorageError } from "@/lib/store";
+import { isEventShape, isRoutineShape } from "@/lib/validate";
 import { nowInZone } from "@/lib/clock";
-import type { DofficeEvent } from "@/lib/types";
+import type { DofficeEvent, Routine } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +11,13 @@ const IMPORT_LIMIT = 20000;
 
 export async function GET(request: Request) {
   if (!requestAuthorized(request)) return unauthorizedResponse();
-  const events = await listEvents();
-  return new Response(`${JSON.stringify(events, null, 2)}\n`, {
+  const doc = await readDoc();
+  const backup = {
+    events: doc.events,
+    routines: doc.routines,
+    availability: doc.availability,
+  };
+  return new Response(`${JSON.stringify(backup, null, 2)}\n`, {
     headers: {
       "content-type": "application/json; charset=utf-8",
       "content-disposition": `attachment; filename="doffice-${nowInZone().key}.json"`,
@@ -51,6 +56,12 @@ export async function PUT(request: Request) {
     );
   }
 
+  const routineRows = Array.isArray((body as { routines?: unknown }).routines)
+    ? ((body as { routines: unknown[] }).routines.filter(
+        isRoutineShape,
+      ) as Routine[])
+    : null;
+
   const valid = rows.filter(isEventShape) as DofficeEvent[];
   if (valid.length === 0) {
     return Response.json(
@@ -60,8 +71,12 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const events = await replaceEvents(valid);
-    return Response.json({ events, imported: events.length });
+    const events = await replaceEvents(valid, routineRows);
+    return Response.json({
+      events,
+      routines: routineRows,
+      imported: events.length,
+    });
   } catch (error) {
     if (error instanceof StorageError) {
       return Response.json({ error: error.message }, { status: 503 });

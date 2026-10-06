@@ -50,13 +50,30 @@ altta ayarlar durur.
   özeti, etiket dağılımı ve sıradaki kayıtlar.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
-- **Ayarlar**: müsaitlik bağlantıları, çalışma düzeni, yedek işlemleri ve
-  çıkış. Rayın en altındaki dişli açar.
+- **Ayarlar**: müsaitlik bağlantıları, günlük rutinler, çalışma düzeni,
+  yedek işlemleri ve çıkış. Rayın en altındaki dişli açar.
 
 Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
 içinde vektör olarak durur, aynı çizim `app/icon.svg` ile sekme
 ikonunda, `app/apple-icon.png` ile iOS kısayolunda ve `public/logo.svg`
 ile paylaşımlarda kullanılır.
+
+## Günlük rutinler
+
+Her hafta tekrar eden sabit işler (ders, antrenman, sabit toplantı)
+Ayarlar penceresindeki **Günlük rutinler** bölümünde tanımlanır. Rutine
+ad verilir, günler seçilir (tek tek ya da Her gün, Hafta içi, Hafta sonu
+kısayollarıyla), başlangıç ve bitiş saati girilir. İstersen etiket, not
+ve bir tarih aralığı da verebilirsin, böylece rutin yalnızca o dönemde
+işler.
+
+Rutin kayıt değildir, kopyası çıkarılmaz. Seçili günlerde Ajanda
+hücresinde ve gün panelinde görünür, müsaitlik bağlantısında o saatleri
+kapatır. Gün panelinde düzenlenemez, yönetimi Ayarlar bölümündedir.
+**Durdur** rutini silmeden askıya alır, **Başlat** geri açar.
+
+Almanak (yıl) görünümünde rutinler işaretlenmez, çünkü günlük bir rutin
+yılın bütün günlerini doldurup işareti anlamsız kılardı.
 
 ## Müsaitlik ve randevu
 
@@ -71,9 +88,13 @@ tahmin eden biri takvimine bakamaz. Ziyaretçi o aydaki boş gün ve
 saatleri görür, kayıtların içeriğini görmez.
 
 Boş saat hesabı şöyle çalışır: çalışma günleri ve saatleri ayarlardan
-gelir, aralık randevu süresine bölünür, üstüne denk gelen kayıtlar ve
-bekleyen randevular düşülür. Bir kaydın kapattığı süre, kayıt formundaki
-süre alanıdır.
+gelir, aralık randevu süresine bölünür, üstüne denk gelen kayıtlar,
+rutinler ve bekleyen randevular düşülür. Bir kaydın kapattığı süre, kayıt
+formundaki süre alanıdır, rutinde ise başlangıç ile bitiş arasıdır.
+
+Dolu saatler ziyaretçiye gizlenmez, üstü çizili ve seçilemez biçimde
+görünür. Böylece karşı taraf o günün hangi saatinin boş hangisinin dolu
+olduğunu görür. Dolu saatin başlığı veya içeriği gösterilmez.
 
 Ziyaretçi saat seçip ad ve iletişim bırakınca talep düşer. Talep anında
 bildirime gelir, panelden onaylanır veya reddedilir. Form gizli alan
@@ -113,9 +134,10 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 - Kayıtlar `data/events.json` içinde tutulur ve `.gitignore` ile repo
   dışında bırakılır, kişisel veri GitHub'a gitmez.
 - `data/events.sample.json` repoda durur, ilk kurulumda örnek içerik verir.
-- Ayarlardaki **Yedek al** tüm kayıtları JSON indirir.
+- Ayarlardaki **Yedek al** kayıtları, rutinleri ve çalışma düzenini JSON
+  indirir.
 - **Yedek yükle** seçilen JSON ile mevcut kayıtların yerine geçer,
-  geçersiz satırlar atlanır.
+  geçersiz satırlar atlanır. Dosyada rutin varsa onlar da geri yüklenir.
 
 ## Ortam değişkenleri
 

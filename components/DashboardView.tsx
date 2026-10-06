@@ -10,12 +10,14 @@ import {
   WEEKDAY_SHORT,
   weekdayOfKey,
 } from "@/lib/dates";
-import { eventsOn, indexRange, upcoming } from "@/lib/occurrences";
-import type { DofficeEvent } from "@/lib/types";
+import { indexRange, upcoming } from "@/lib/occurrences";
+import { dayItems, itemSpan } from "@/lib/routines";
+import type { DofficeEvent, Routine } from "@/lib/types";
 import { Card, TagChip, TagDot } from "./ui";
 
 type Props = {
   events: DofficeEvent[];
+  routines: Routine[];
   today: string;
   onSelect: (key: string) => void;
   onToggleDone: (event: DofficeEvent) => void;
@@ -43,8 +45,14 @@ function Tile({
   );
 }
 
-export function DashboardView({ events, today, onSelect, onToggleDone }: Props) {
-  const todayEvents = eventsOn(events, today);
+export function DashboardView({
+  events,
+  routines,
+  today,
+  onSelect,
+  onToggleDone,
+}: Props) {
+  const todayEvents = dayItems(events, routines, today);
   const nextDays = upcoming(events, today, 15).filter((day) => day.key !== today);
   const overdue = events
     .filter((event) => event.repeat === "yok" && !event.done && event.date < today)
@@ -124,7 +132,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                     style={{ animationDelay: `${position * 45}ms` }}
                     className="anim-rise nb-thin flex items-start gap-3 rounded-md bg-cream px-3 py-2.5"
                   >
-                    {event.repeat === "yok" ? (
+                    {event.repeat === "yok" && !event.routineId ? (
                       <input
                         type="checkbox"
                         checked={event.done}
@@ -141,7 +149,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                       <span className="flex flex-wrap items-baseline gap-2">
                         {event.time ? (
                           <span className="tabular text-sm font-bold text-rust">
-                            {event.time}
+                            {event.routineId ? itemSpan(event) : event.time}
                           </span>
                         ) : null}
                         <span
@@ -151,6 +159,11 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                         >
                           {event.title}
                         </span>
+                        {event.routineId ? (
+                          <span className="nb-thin rounded-sm bg-card px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                            rutin
+                          </span>
+                        ) : null}
                       </span>
                       {event.note ? (
                         <span className="mt-0.5 block text-[13px] font-medium text-ink-soft">

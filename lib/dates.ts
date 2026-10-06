@@ -162,3 +162,14 @@ export function relativeLabel(key: string, reference: string) {
   if (diff > 1) return `${diff} gün sonra`;
   return `${Math.abs(diff)} gün önce`;
 }
+
+export function toMinutes(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+export function toClock(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+}

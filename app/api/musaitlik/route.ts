@@ -33,9 +33,12 @@ export async function GET(request: Request) {
   const fromKey = month < nowKey.slice(0, 7) ? nowKey : `${month}-01`;
 
   const days = availableDays(
-    doc.availability,
-    doc.events,
-    doc.appointments,
+    {
+      availability: doc.availability,
+      events: doc.events,
+      appointments: doc.appointments,
+      routines: doc.routines,
+    },
     fromKey < nowKey ? nowKey : fromKey,
     month,
     nowKey,

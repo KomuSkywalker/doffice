@@ -27,6 +27,7 @@ export default async function HomePage() {
   return (
     <Doffice
       initialEvents={doc.events}
+      initialRoutines={doc.routines}
       initialAvailability={doc.availability}
       initialNotifications={doc.notifications}
       initialAppointments={doc.appointments}

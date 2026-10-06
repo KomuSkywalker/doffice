@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatLong, relativeLabel } from "@/lib/dates";
+import { itemSpan } from "@/lib/routines";
 import { repeatLabel, type DofficeEvent, type EventDraft } from "@/lib/types";
 import { EventForm } from "./EventForm";
 import { Button, TagChip } from "./ui";
@@ -55,7 +56,17 @@ export function DayPanel({
     return () => window.removeEventListener("keydown", onKey);
   }, [requestClose]);
 
+  const routineCount = events.filter((event) => event.routineId).length;
+  const recordCount = events.length - routineCount;
   const doneCount = events.filter((event) => event.done).length;
+  const countLabel = [
+    recordCount > 0
+      ? `${recordCount} kayıt${doneCount > 0 ? `, ${doneCount} tamamlandı` : ""}`
+      : null,
+    routineCount > 0 ? `${routineCount} rutin` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <div className="no-print fixed inset-0 z-50 flex justify-end">
@@ -85,11 +96,7 @@ export function DayPanel({
                 {formatLong(dateKey)}
               </h2>
               <p className="mt-1 text-xs font-bold text-ink/80">
-                {events.length === 0
-                  ? "Kayıt yok"
-                  : `${events.length} kayıt${
-                      doneCount > 0 ? `, ${doneCount} tamamlandı` : ""
-                    }`}
+                {countLabel.length === 0 ? "Kayıt yok" : countLabel}
               </p>
             </div>
             <button
@@ -113,15 +120,22 @@ export function DayPanel({
           ) : (
             <ul className="space-y-3">
               {events.map((event, position) => {
+                const routine = Boolean(event.routineId);
                 const repeating = event.repeat !== "yok";
                 return (
                   <li
                     key={event.id}
-                    style={{ animationDelay: `${Math.min(position, 8) * 50}ms` }}
+                    style={{
+                      animationDelay: `${Math.min(position, 8) * 50}ms`,
+                    }}
                     className="anim-rise lift nb rounded-lg bg-card p-3.5 shadow-nb-sm"
                   >
                     <div className="flex items-start gap-3">
-                      {repeating ? (
+                      {routine ? (
+                        <span className="nb-thin mt-0.5 shrink-0 rounded-sm bg-gold px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                          rutin
+                        </span>
+                      ) : repeating ? (
                         <span className="nb-thin mt-0.5 shrink-0 rounded-sm bg-cream px-1.5 py-0.5 text-[10px] font-bold uppercase">
                           tekrar
                         </span>
@@ -138,12 +152,14 @@ export function DayPanel({
                         <div className="flex flex-wrap items-baseline gap-2">
                           {event.time ? (
                             <span className="tabular text-base font-bold text-rust">
-                              {event.time}
+                              {routine ? itemSpan(event) : event.time}
                             </span>
                           ) : null}
                           <h3
                             className={`text-base font-bold leading-snug transition-all duration-200 ${
-                              event.done ? "text-muted line-through opacity-70" : ""
+                              event.done
+                                ? "text-muted line-through opacity-70"
+                                : ""
                             }`}
                           >
                             {event.title}
@@ -156,6 +172,11 @@ export function DayPanel({
                         ) : null}
                         <div className="mt-2.5 flex flex-wrap items-center gap-2">
                           <TagChip tag={event.tag} />
+                          {routine ? (
+                            <span className="nb-thin rounded-sm bg-cream px-2 py-0.5 text-[11px] font-bold">
+                              Her hafta tekrar eden rutin
+                            </span>
+                          ) : null}
                           {repeating ? (
                             <span className="nb-thin rounded-sm bg-cream px-2 py-0.5 text-[11px] font-bold">
                               {repeatLabel(event.repeat)}
@@ -165,38 +186,46 @@ export function DayPanel({
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-end gap-2 border-t-2 border-ink/10 pt-2.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditing(event);
-                          setConfirming(null);
-                        }}
-                        className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
-                      >
-                        Düzenle
-                      </button>
-                      {confirming === event.id ? (
+                    {routine ? (
+                      <p className="mt-3 border-t-2 border-ink/10 pt-2.5 text-[11px] font-medium text-muted">
+                        Rutinleri Ayarlar bölümünden düzenlersin.
+                      </p>
+                    ) : (
+                      <div className="mt-3 flex items-center justify-end gap-2 border-t-2 border-ink/10 pt-2.5">
                         <button
                           type="button"
-                          disabled={pending}
                           onClick={() => {
-                            void onDelete(event.id).then(() => setConfirming(null));
+                            setEditing(event);
+                            setConfirming(null);
                           }}
-                          className="chip-pop nb-thin rounded-sm bg-coral px-2.5 py-1 text-xs font-bold text-ink"
-                        >
-                          Sil, eminim
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirming(event.id)}
                           className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
                         >
-                          Sil
+                          Düzenle
                         </button>
-                      )}
-                    </div>
+                        {confirming === event.id ? (
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() => {
+                              void onDelete(event.id).then(() =>
+                                setConfirming(null),
+                              );
+                            }}
+                            className="chip-pop nb-thin rounded-sm bg-coral px-2.5 py-1 text-xs font-bold text-ink"
+                          >
+                            Sil, eminim
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirming(event.id)}
+                            className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
+                          >
+                            Sil
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </li>
                 );
               })}

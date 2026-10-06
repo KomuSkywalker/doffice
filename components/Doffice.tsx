@@ -9,7 +9,8 @@ import {
   useSyncExternalStore,
 } from "react";
 import { makeKey, monthCells, parseKey, shiftKey, shiftMonth } from "@/lib/dates";
-import { eventsOn, indexRange, searchEvents } from "@/lib/occurrences";
+import { indexRange, searchEvents } from "@/lib/occurrences";
+import { dayItems, indexRangeWithRoutines } from "@/lib/routines";
 import { subscribeToday, todaySnapshot } from "@/lib/client-clock";
 import type {
   Appointment,
@@ -17,6 +18,8 @@ import type {
   Availability,
   DofficeEvent,
   EventDraft,
+  Routine,
+  RoutineDraft,
   ShareLink,
 } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
@@ -31,6 +34,7 @@ import { YearView } from "./YearView";
 
 type Props = {
   initialEvents: DofficeEvent[];
+  initialRoutines: Routine[];
   initialAvailability: Availability;
   initialNotifications: AppNotification[];
   initialAppointments: Appointment[];
@@ -48,6 +52,7 @@ type WriteCall = {
 
 export function Doffice({
   initialEvents,
+  initialRoutines,
   initialAvailability,
   initialNotifications,
   initialAppointments,
@@ -61,6 +66,7 @@ export function Doffice({
   );
 
   const [events, setEvents] = useState(initialEvents);
+  const [routines, setRoutines] = useState(initialRoutines);
   const [availability, setAvailability] = useState(initialAvailability);
   const [links, setLinks] = useState(initialLinks);
   const [notifications, setNotifications] =
@@ -208,8 +214,13 @@ export function Doffice({
         path: "/api/backup",
         init: { method: "PUT", body: JSON.stringify(parsed) },
         onDone: (payload) => {
-          const data = payload as { events: DofficeEvent[]; imported: number };
+          const data = payload as {
+            events: DofficeEvent[];
+            routines: Routine[] | null;
+            imported: number;
+          };
           setEvents(data.events);
+          if (data.routines) setRoutines(data.routines);
           setToast({ tone: "ok", text: `${data.imported} kayıt yüklendi.` });
         },
       });
@@ -262,6 +273,49 @@ export function Doffice({
     [runWrite],
   );
 
+  const createRoutine = useCallback(
+    (draft: RoutineDraft) =>
+      runWrite({
+        path: "/api/rutin",
+        init: { method: "POST", body: JSON.stringify(draft) },
+        onDone: (payload) => {
+          const routine = (payload as { routine: Routine }).routine;
+          setRoutines((current) => [...current, routine]);
+          setToast({ tone: "ok", text: "Rutin eklendi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const updateRoutine = useCallback(
+    (id: string, draft: Partial<RoutineDraft>) =>
+      runWrite({
+        path: `/api/rutin/${id}`,
+        init: { method: "PATCH", body: JSON.stringify(draft) },
+        onDone: (payload) => {
+          const routine = (payload as { routine: Routine }).routine;
+          setRoutines((current) =>
+            current.map((row) => (row.id === id ? routine : row)),
+          );
+          setToast({ tone: "ok", text: "Rutin güncellendi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const removeRoutine = useCallback(
+    (id: string) =>
+      runWrite({
+        path: `/api/rutin/${id}`,
+        init: { method: "DELETE" },
+        onDone: () => {
+          setRoutines((current) => current.filter((row) => row.id !== id));
+          setToast({ tone: "ok", text: "Rutin silindi." });
+        },
+      }),
+    [runWrite],
+  );
+
   const decideAppointment = useCallback(
     (id: string, approve: boolean) => {
       void runWrite({
@@ -290,6 +344,7 @@ export function Doffice({
 
   const toggleDone = useCallback(
     (event: DofficeEvent) => {
+      if (event.routineId) return;
       const next = !event.done;
       const flip = (value: boolean) =>
         setEvents((current) =>
@@ -313,11 +368,19 @@ export function Doffice({
       return indexRange(events, makeKey(cursor.year, 0, 1), makeKey(cursor.year, 11, 31));
     }
     const cells = monthCells(cursor.year, cursor.month);
-    return indexRange(events, cells[0].key, cells[cells.length - 1].key);
-  }, [events, view, cursor]);
+    return indexRangeWithRoutines(
+      events,
+      routines,
+      cells[0].key,
+      cells[cells.length - 1].key,
+    );
+  }, [events, routines, view, cursor]);
 
   const results = useMemo(() => searchEvents(events, query), [events, query]);
-  const dayEvents = useMemo(() => eventsOn(events, selected), [events, selected]);
+  const dayEvents = useMemo(
+    () => dayItems(events, routines, selected),
+    [events, routines, selected],
+  );
 
   const openDay = useCallback((key: string) => {
     const parsed = parseKey(key);
@@ -491,6 +554,7 @@ export function Doffice({
             {view === "panel" ? (
               <DashboardView
                 events={events}
+                routines={routines}
                 today={today}
                 onSelect={openDay}
                 onToggleDone={toggleDone}
@@ -569,6 +633,7 @@ export function Doffice({
         <SettingsDialog
           availability={availability}
           links={links}
+          routines={routines}
           total={events.length}
           pending={pending}
           onClose={() => setSettingsOpen(false)}
@@ -576,6 +641,9 @@ export function Doffice({
           onSave={saveAvailability}
           onCreateLink={createLink}
           onRevokeLink={revokeLink}
+          onCreateRoutine={createRoutine}
+          onUpdateRoutine={updateRoutine}
+          onDeleteRoutine={removeRoutine}
           onLogout={() => void logout()}
         />
       ) : null}

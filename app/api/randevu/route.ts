@@ -36,9 +36,12 @@ export async function POST(request: Request) {
   const nowMinutes = now.minutes;
 
   const free = slotIsFree(
-    doc.availability,
-    doc.events,
-    doc.appointments,
+    {
+      availability: doc.availability,
+      events: doc.events,
+      appointments: doc.appointments,
+      routines: doc.routines,
+    },
     parsed.value.date,
     parsed.value.time,
     nowKey,
