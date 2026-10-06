@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { formatLong, relativeLabel } from "@/lib/dates";
 import { repeatLabel, type AlmanakEvent, type EventDraft } from "@/lib/types";
 import { EventForm } from "./EventForm";
@@ -31,7 +31,6 @@ export function DayPanel({
 }: Props) {
   const [editing, setEditing] = useState<AlmanakEvent | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -41,72 +40,69 @@ export function DayPanel({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const relative = relativeLabel(dateKey, today);
+  const doneCount = events.filter((event) => event.done).length;
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end no-print">
+    <div className="no-print fixed inset-0 z-50 flex justify-end">
       <button
         type="button"
         aria-label="Paneli kapat"
         onClick={onClose}
-        className="anim-fade absolute inset-0 bg-ink/25 backdrop-blur-[1px]"
+        className="anim-fade absolute inset-0 bg-ink/35"
       />
       <aside
-        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={`${formatLong(dateKey)} kayıtları`}
-        className="anim-panel scroll-thin relative flex h-full w-full max-w-[440px] flex-col overflow-y-auto bg-paper shadow-panel"
+        className="anim-panel scroll-thin relative flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l-[3px] border-ink bg-peach"
       >
-        <header className="sticky top-0 z-10 border-b border-line bg-paper/95 px-4 py-4 backdrop-blur">
+        <header className="sticky top-0 z-10 border-b-[3px] border-ink bg-yellow px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-                {relative}
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em]">
+                {relativeLabel(dateKey, today)}
               </p>
-              <h2 className="font-display text-xl font-semibold leading-tight">
+              <h2 className="mt-1 text-2xl font-bold leading-tight tracking-[-0.03em]">
                 {formatLong(dateKey)}
               </h2>
+              <p className="mt-1 text-xs font-bold text-ink/80">
+                {events.length === 0
+                  ? "Kayıt yok"
+                  : `${events.length} kayıt${
+                      doneCount > 0 ? `, ${doneCount} tamamlandı` : ""
+                    }`}
+              </p>
             </div>
-            <Button
-              tone="quiet"
+            <button
+              type="button"
               onClick={onClose}
               aria-label="Kapat"
-              className="shrink-0 px-2 py-1 text-lg leading-none"
+              className="nb press-sm shrink-0 rounded-md bg-card px-3 py-1.5 text-lg font-bold leading-none shadow-nb-sm"
             >
               ×
-            </Button>
+            </button>
           </div>
-          <p className="mt-1 text-xs text-muted">
-            {events.length === 0
-              ? "Kayıt yok"
-              : `${events.length} kayıt${
-                  events.some((event) => event.done)
-                    ? `, ${events.filter((event) => event.done).length} tamamlandı`
-                    : ""
-                }`}
-          </p>
         </header>
 
-        <div className="flex-1 space-y-3 px-4 py-4">
+        <div className="flex-1 space-y-4 px-5 py-5">
           {events.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-line bg-surface/60 px-3 py-6 text-center text-sm text-muted">
+            <p className="nb rounded-lg border-dashed bg-card/70 px-4 py-8 text-center text-sm font-bold">
               Bu güne henüz bir şey eklenmedi.
               <br />
               Aşağıdaki kutudan ilk kaydı oluştur.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {events.map((event) => {
                 const repeating = event.repeat !== "yok";
                 return (
                   <li
                     key={event.id}
-                    className="anim-rise rounded-lg border border-line bg-surface p-3 shadow-paper"
+                    className="anim-rise nb rounded-lg bg-card p-3.5 shadow-nb-sm"
                   >
                     <div className="flex items-start gap-3">
                       {repeating ? (
-                        <span className="mt-0.5 w-12 shrink-0 text-center text-[11px] font-medium text-muted">
+                        <span className="nb-thin mt-0.5 shrink-0 rounded-sm bg-cream px-1.5 py-0.5 text-[10px] font-bold uppercase">
                           tekrar
                         </span>
                       ) : (
@@ -115,72 +111,71 @@ export function DayPanel({
                           checked={event.done}
                           onChange={() => onToggleDone(event)}
                           aria-label={`${event.title} tamamlandı`}
-                          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
+                          className="mt-1 h-4.5 w-4.5 shrink-0 accent-[var(--color-orange)]"
                         />
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline gap-2">
                           {event.time ? (
-                            <span className="tabular font-display text-sm font-semibold text-accent-ink">
+                            <span className="tabular text-base font-bold text-rust">
                               {event.time}
                             </span>
                           ) : null}
                           <h3
-                            className={`text-sm font-semibold leading-snug ${
-                              event.done ? "text-muted line-through" : "text-ink"
+                            className={`text-base font-bold leading-snug ${
+                              event.done ? "text-muted line-through" : ""
                             }`}
                           >
                             {event.title}
                           </h3>
                         </div>
                         {event.note ? (
-                          <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-ink-soft">
+                          <p className="mt-1.5 whitespace-pre-line text-sm font-medium leading-relaxed text-ink-soft">
                             {event.note}
                           </p>
                         ) : null}
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <div className="mt-2.5 flex flex-wrap items-center gap-2">
                           <TagChip tag={event.tag} />
                           {repeating ? (
-                            <span className="rounded-sm bg-sunk px-1.5 py-0.5 text-[11px] text-muted">
+                            <span className="nb-thin rounded-sm bg-cream px-2 py-0.5 text-[11px] font-bold">
                               {repeatLabel(event.repeat)}
                             </span>
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <Button
-                          tone="quiet"
-                          className="px-2 py-1 text-xs"
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-end gap-2 border-t-2 border-ink/10 pt-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditing(event);
+                          setConfirming(null);
+                        }}
+                        className="nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
+                      >
+                        Düzenle
+                      </button>
+                      {confirming === event.id ? (
+                        <button
+                          type="button"
+                          disabled={pending}
                           onClick={() => {
-                            setEditing(event);
-                            setConfirming(null);
+                            void onDelete(event.id).then(() => setConfirming(null));
                           }}
+                          className="nb-thin rounded-sm bg-orange px-2.5 py-1 text-xs font-bold text-ink"
                         >
-                          Düzenle
-                        </Button>
-                        {confirming === event.id ? (
-                          <Button
-                            tone="danger"
-                            className="px-2 py-1 text-xs"
-                            disabled={pending}
-                            onClick={() => {
-                              void onDelete(event.id).then(() =>
-                                setConfirming(null),
-                              );
-                            }}
-                          >
-                            Sil, eminim
-                          </Button>
-                        ) : (
-                          <Button
-                            tone="quiet"
-                            className="px-2 py-1 text-xs"
-                            onClick={() => setConfirming(event.id)}
-                          >
-                            Sil
-                          </Button>
-                        )}
-                      </div>
+                          Sil, eminim
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirming(event.id)}
+                          className="nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
+                        >
+                          Sil
+                        </button>
+                      )}
                     </div>
                   </li>
                 );
@@ -189,7 +184,7 @@ export function DayPanel({
           )}
 
           {editing && editing.repeat !== "yok" ? (
-            <p className="rounded-md bg-accent-soft px-3 py-2 text-xs text-accent-ink">
+            <p className="nb-thin rounded-md bg-orange px-3 py-2 text-xs font-bold text-ink">
               Bu kayıt tekrarlı. Değişiklik tüm tekrarlara işler.
             </p>
           ) : null}
@@ -209,6 +204,10 @@ export function DayPanel({
               return onCreate(draft);
             }}
           />
+
+          <Button tone="plain" onClick={onClose} className="w-full">
+            Paneli kapat
+          </Button>
         </div>
       </aside>
     </div>

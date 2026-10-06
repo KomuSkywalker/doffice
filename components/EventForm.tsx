@@ -64,14 +64,14 @@ export function EventForm({
 
   return (
     <form
-      className="space-y-3 rounded-lg border border-line bg-surface p-3"
+      className="nb space-y-3.5 rounded-lg bg-card p-4 shadow-nb-sm"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-[15px] font-semibold">
+        <h3 className="text-base font-bold tracking-tight">
           {editing ? "Kaydı düzenle" : "Yeni kayıt"}
         </h3>
         {editing ? (
@@ -149,7 +149,7 @@ export function EventForm({
 
       <Field label="Not" hint="boş olabilir">
         <textarea
-          className={`${inputClass} min-h-[70px] resize-y`}
+          className={`${inputClass} min-h-[84px] resize-y`}
           value={note}
           maxLength={2000}
           placeholder="Detay, adres, kişi"
@@ -158,14 +158,16 @@ export function EventForm({
       </Field>
 
       {error ? (
-        <p className="text-xs font-medium text-accent-ink">{error}</p>
+        <p className="nb-thin rounded-sm bg-orange px-2.5 py-1.5 text-xs font-bold text-ink">
+          {error}
+        </p>
       ) : null}
 
       <div className="flex items-center gap-2">
-        <Button type="submit" tone="solid" disabled={pending}>
+        <Button type="submit" tone="primary" disabled={pending}>
           {editing ? "Kaydet" : "Güne ekle"}
         </Button>
-        <span className="text-xs text-muted">
+        <span className="text-xs font-medium text-muted">
           {editing ? "Enter ile kaydet" : "Enter ile ekle"}
         </span>
       </div>

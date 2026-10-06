@@ -1,10 +1,11 @@
 # Almanak
 
-Yılın tamamını tek ekranda gören, her günün altına kayıt eklenen kişisel
-takvim. Kişisel asistan gibi çalışır: bugünü, gecikenleri ve yaklaşan
-kayıtları yan panelde özetler.
+Takvim, ajanda ve kayıt yönetimini tek ekranda toplayan kişisel ofis
+paneli. Sol menüden panel, takvim, yıl ve kayıt defteri arasında geçilir.
 
-Veri tek bir JSON dosyasında durur, dış servis yoktur.
+Tasarım neo brutalist: kalın siyah çerçeveler, sert gölgeler, düz renkler
+ve her yerde Helvetica. Veri tek bir JSON dosyasında durur, dış servis
+yoktur.
 
 ## Çalıştırma
 
@@ -26,10 +27,17 @@ npm start
 
 ## Görünümler
 
-- **Ay**: büyük takvim ızgarası, her hücrede o günün kayıtları. Sağda
-  bugün, gecikenler ve yaklaşanlar paneli.
+Sol menü dört bölüme ayrılır, altında bugünün sayıları ve yedek işlemleri
+durur. Dar ekranda menü çekmece olarak açılır.
+
+- **Panel**: bugün, geciken, yedi gün ve ay sayıları. Bugünün programı,
+  gecikenler listesi ve yaklaşan kayıtlar.
+- **Takvim**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
+  etiketleriyle görünür.
 - **Yıl**: on iki ay tek ekranda, kayıtlı günler işaretli. Altında yıl
   özeti, etiket dağılımı ve sıradaki kayıtlar.
+- **Kayıtlar**: defterin tamamı. Kapsam (tümü, bugün ve sonrası, geçmiş,
+  tamamlananlar) ve etiket filtreleriyle aya göre gruplanır.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
 
@@ -51,19 +59,23 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 
 | Tuş | İş |
 | --- | --- |
-| Ok tuşları | Gün seçimini gezdirir |
-| Enter veya n | Seçili günü açar |
+| p | Panel |
+| m | Takvim |
+| y | Yıl |
+| l | Kayıtlar |
 | t | Bugüne döner |
-| m / y | Ay ve yıl görünümü |
+| n | Yeni kayıt |
+| Ok tuşları | Takvimde gün seçimini gezdirir |
+| Enter | Seçili günü açar |
 | / | Aramaya odaklanır |
-| Esc | Paneli veya aramayı kapatır |
+| Esc | Paneli, menüyü veya aramayı kapatır |
 
 ## Veri ve yedek
 
 - Kayıtlar `data/events.json` içinde tutulur ve `.gitignore` ile repo
   dışında bırakılır, kişisel veri GitHub'a gitmez.
 - `data/events.sample.json` repoda durur, ilk kurulumda örnek içerik verir.
-- Üst bardaki **Yedek al** tüm kayıtları JSON indirir.
+- Sol menüdeki **Yedek al** tüm kayıtları JSON indirir.
 - **Yedek yükle** seçilen JSON ile mevcut kayıtların yerine geçer,
   geçersiz satırlar atlanır.
 
@@ -115,4 +127,7 @@ başlamak için `data/events.json` dosyasına `[]` yaz.
 
 Next.js 16 App Router, React 19, TypeScript, Tailwind v4. Takvim mantığı
 `lib/dates.ts` ve `lib/occurrences.ts` içinde saf fonksiyonlardır, dış
-tarih kütüphanesi kullanılmaz.
+tarih kütüphanesi kullanılmaz. Yazı tipi sistemdeki Helvetica'dır, web
+fontu indirilmez. Renk ve gölge token'ları `app/globals.css` içindeki
+`@theme` bloğunda tanımlıdır, metin kontrastları WCAG AA eşiğine göre
+seçilmiştir.

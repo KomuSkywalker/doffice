@@ -17,17 +17,17 @@ export function KeyPrompt({ onSubmit, onClose }: Props) {
         type="button"
         aria-label="Kapat"
         onClick={onClose}
-        className="anim-fade absolute inset-0 bg-ink/30"
+        className="anim-fade absolute inset-0 bg-ink/35"
       />
       <form
-        className="anim-rise relative w-full max-w-sm space-y-3 rounded-xl border border-line bg-surface p-4 shadow-raised"
+        className="anim-rise nb relative w-full max-w-sm space-y-3.5 rounded-lg bg-card p-5 shadow-nb-lg"
         onSubmit={(event) => {
           event.preventDefault();
           if (value.trim().length > 0) onSubmit(value.trim());
         }}
       >
-        <h2 className="font-display text-lg font-semibold">Panel anahtarı</h2>
-        <p className="text-[13px] leading-relaxed text-muted">
+        <h2 className="text-xl font-bold tracking-tight">Panel anahtarı</h2>
+        <p className="text-sm font-medium leading-relaxed text-muted">
           Bu almanakta yazma işlemleri anahtarla korunuyor.
           Anahtarı gir, oturum boyunca hatırlanır.
         </p>
@@ -41,7 +41,7 @@ export function KeyPrompt({ onSubmit, onClose }: Props) {
           />
         </Field>
         <div className="flex items-center gap-2">
-          <Button type="submit" tone="solid">
+          <Button type="submit" tone="primary">
             Kaydet
           </Button>
           <Button tone="quiet" onClick={onClose}>

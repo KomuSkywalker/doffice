@@ -1,44 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
-
-const display = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-const sans = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Almanak",
   description:
-    "Yılın tamamını tek ekranda gören, her güne not ve etkinlik eklenen kişisel almanak.",
+    "Takvim, ajanda ve kayıt yönetimini tek ekranda toplayan kişisel ofis paneli.",
   applicationName: "Almanak",
   robots: { index: false, follow: false },
   openGraph: {
     title: "Almanak",
-    description: "Yılın tamamını tek ekranda gören kişisel almanak.",
+    description: "Kişisel ofis paneli ve yıllık takvim.",
     type: "website",
     locale: "tr_TR",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f0e6",
+  themeColor: "#f7ce88",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="tr"
-      className={`${display.variable} ${sans.variable} h-full antialiased`}
-    >
+    <html lang="tr" className="h-full antialiased">
       <body className="min-h-full">{children}</body>
     </html>
   );

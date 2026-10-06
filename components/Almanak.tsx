@@ -1,15 +1,7 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import {
-  MONTH_NAMES,
   makeKey,
   monthCells,
   parseKey,
@@ -27,11 +19,14 @@ import {
   writeKeyHeader,
 } from "@/lib/client-store";
 import type { AlmanakEvent, EventDraft } from "@/lib/types";
+import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
+import { Decorations } from "./Decorations";
 import { KeyPrompt } from "./KeyPrompt";
+import { ListView } from "./ListView";
 import { MonthView } from "./MonthView";
-import { TopBar, type ViewMode } from "./TopBar";
-import { UpcomingRail } from "./UpcomingRail";
+import { Sidebar, type ViewId } from "./Sidebar";
+import { Topbar } from "./Topbar";
 import { YearSummary } from "./YearSummary";
 import { YearView } from "./YearView";
 
@@ -50,11 +45,7 @@ type WriteCall = {
 };
 
 export function Almanak({ initialEvents, locked, serverToday }: Props) {
-  const today = useSyncExternalStore(
-    subscribeToday,
-    todaySnapshot,
-    () => serverToday,
-  );
+  const today = useSyncExternalStore(subscribeToday, todaySnapshot, () => serverToday);
   const hasKey = useSyncExternalStore(
     subscribeWriteKey,
     hasWriteKeySnapshot,
@@ -62,7 +53,8 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   );
 
   const [events, setEvents] = useState(initialEvents);
-  const [view, setView] = useState<ViewMode>("ay");
+  const [view, setView] = useState<ViewId>("panel");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [cursor, setCursor] = useState(() => {
     const parsed = parseKey(serverToday);
     return { year: parsed.year, month: parsed.month };
@@ -75,6 +67,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   const [keyPromptOpen, setKeyPromptOpen] = useState(false);
   const retryRef = useRef<WriteCall | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -94,10 +87,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
     try {
       const response = await fetch(call.path, {
         ...call.init,
-        headers: {
-          "content-type": "application/json",
-          ...writeKeyHeader(),
-        },
+        headers: { "content-type": "application/json", ...writeKeyHeader() },
       });
 
       if (response.status === 401) {
@@ -202,9 +192,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
       const next = !event.done;
       const flip = (value: boolean) =>
         setEvents((current) =>
-          current.map((row) =>
-            row.id === event.id ? { ...row, done: value } : row,
-          ),
+          current.map((row) => (row.id === event.id ? { ...row, done: value } : row)),
         );
       flip(next);
       void updateEvent(event.id, { done: next }).then((saved) => {
@@ -216,11 +204,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
   const rangeIndex = useMemo(() => {
     if (view === "yil") {
-      return indexRange(
-        events,
-        makeKey(cursor.year, 0, 1),
-        makeKey(cursor.year, 11, 31),
-      );
+      return indexRange(events, makeKey(cursor.year, 0, 1), makeKey(cursor.year, 11, 31));
     }
     const cells = monthCells(cursor.year, cursor.month);
     return indexRange(events, cells[0].key, cells[cells.length - 1].key);
@@ -228,6 +212,18 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
   const results = useMemo(() => searchEvents(events, query), [events, query]);
   const dayEvents = useMemo(() => eventsOn(events, selected), [events, selected]);
+
+  const counts = useMemo(() => {
+    const todayList = eventsOn(events, today);
+    const overdue = events.filter(
+      (event) => event.repeat === "yok" && !event.done && event.date < today,
+    );
+    return {
+      bugun: todayList.length,
+      geciken: overdue.length,
+      toplam: events.length,
+    };
+  }, [events, today]);
 
   const openDay = useCallback((key: string) => {
     const parsed = parseKey(key);
@@ -263,6 +259,20 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
     });
   }, []);
 
+  const startNewRecord = useCallback(() => {
+    if (view === "panel" || view === "liste") {
+      setSelected(today);
+      const parsed = parseKey(today);
+      setCursor({ year: parsed.year, month: parsed.month });
+    }
+    setPanelOpen(true);
+  }, [today, view]);
+
+  const pickView = useCallback((next: ViewId) => {
+    setView(next);
+    setMenuOpen(false);
+  }, []);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -273,6 +283,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
       if (event.key === "Escape") {
         if (query.length > 0) setQuery("");
+        if (menuOpen) setMenuOpen(false);
         if (typing) target?.blur();
         return;
       }
@@ -287,117 +298,149 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
       if (panelOpen || keyPromptOpen) return;
 
-      if (event.key === "ArrowLeft") {
+      if (event.key === "p") setView("panel");
+      else if (event.key === "m") setView("ay");
+      else if (event.key === "y") setView("yil");
+      else if (event.key === "l") setView("liste");
+      else if (event.key === "t") goToday();
+      else if (event.key === "n") {
         event.preventDefault();
-        moveSelection(-1);
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault();
-        moveSelection(1);
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        moveSelection(-7);
-      } else if (event.key === "ArrowDown") {
-        event.preventDefault();
-        moveSelection(7);
-      } else if (event.key === "Enter" || event.key === "n") {
-        event.preventDefault();
-        setPanelOpen(true);
-      } else if (event.key === "t") {
-        goToday();
-      } else if (event.key === "y") {
-        setView("yil");
-      } else if (event.key === "m") {
-        setView("ay");
+        startNewRecord();
+      } else if (view === "ay" || view === "yil") {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveSelection(-1);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          moveSelection(1);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          moveSelection(-7);
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          moveSelection(7);
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          setPanelOpen(true);
+        }
       }
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [goToday, keyPromptOpen, moveSelection, panelOpen, query]);
-
-  const lockedNow = locked && !hasKey;
-  const todayParts = parseKey(today);
+  }, [
+    goToday,
+    keyPromptOpen,
+    menuOpen,
+    moveSelection,
+    panelOpen,
+    query,
+    startNewRecord,
+    view,
+  ]);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopBar
+    <div className="relative min-h-screen">
+      <Decorations />
+
+      <Sidebar
         view={view}
-        year={cursor.year}
-        month={cursor.month}
-        query={query}
-        results={results}
-        locked={lockedNow}
-        total={events.length}
-        searchRef={searchRef}
-        onViewChange={setView}
-        onPrev={() => step(-1)}
-        onNext={() => step(1)}
-        onToday={goToday}
-        onQueryChange={setQuery}
-        onPickResult={openDay}
+        counts={counts}
+        locked={locked && !hasKey}
+        open={menuOpen}
+        onSelect={pickView}
+        onClose={() => setMenuOpen(false)}
         onUnlock={() => setKeyPromptOpen(true)}
         onImport={(text) => void importBackup(text)}
+        onPickFile={() => fileRef.current?.click()}
       />
 
-      <main className="mx-auto w-full max-w-[1680px] flex-1 px-3 pb-24 pt-4 sm:px-5 sm:py-6">
-        <div
-          className={
-            view === "ay"
-              ? "grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]"
-              : "grid gap-5"
-          }
-        >
-          <div className="min-w-0">
-            {view === "ay" ? (
-              <MonthView
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const text = await file.text();
+          void importBackup(text);
+          event.target.value = "";
+        }}
+      />
+
+      <div className="lg:pl-[264px]">
+        <div className="mx-auto w-full max-w-[1520px] px-4 py-6 sm:px-8 sm:py-8">
+          <Topbar
+            view={view}
+            year={cursor.year}
+            month={cursor.month}
+            today={today}
+            query={query}
+            results={results}
+            searchRef={searchRef}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            onToday={goToday}
+            onQueryChange={setQuery}
+            onPickResult={openDay}
+            onNew={startNewRecord}
+            onOpenMenu={() => setMenuOpen(true)}
+          />
+
+          {view === "panel" ? (
+            <DashboardView
+              events={events}
+              today={today}
+              onSelect={openDay}
+              onToggleDone={toggleDone}
+            />
+          ) : null}
+
+          {view === "ay" ? (
+            <MonthView
+              year={cursor.year}
+              month={cursor.month}
+              index={rangeIndex}
+              today={today}
+              selected={selected}
+              onSelect={openDay}
+            />
+          ) : null}
+
+          {view === "yil" ? (
+            <div className="space-y-5">
+              <YearView
                 year={cursor.year}
-                month={cursor.month}
                 index={rangeIndex}
                 today={today}
                 selected={selected}
+                onSelectDay={openDay}
+                onOpenMonth={(month) => {
+                  setCursor((current) => ({ ...current, month }));
+                  setView("ay");
+                }}
+              />
+              <YearSummary
+                year={cursor.year}
+                events={events}
+                today={today}
                 onSelect={openDay}
               />
-            ) : (
-              <div className="space-y-4">
-                <YearView
-                  year={cursor.year}
-                  index={rangeIndex}
-                  today={today}
-                  selected={selected}
-                  onSelectDay={openDay}
-                  onOpenMonth={(month) => {
-                    setCursor((current) => ({ ...current, month }));
-                    setView("ay");
-                  }}
-                />
-                <YearSummary
-                  year={cursor.year}
-                  events={events}
-                  today={today}
-                  onSelect={openDay}
-                />
-              </div>
-            )}
-
-            <p className="mt-3 hidden text-[11px] leading-relaxed text-muted lg:block">
-              Kısayollar: ok tuşlarıyla gün gez, Enter ile günü aç, n yeni kayıt,
-              t bugün, m ay görünümü, y yıl görünümü, eğik çizgi ile arama.
-            </p>
-          </div>
-
-          {view === "ay" ? (
-            <UpcomingRail events={events} today={today} onSelect={openDay} />
+            </div>
           ) : null}
-        </div>
-      </main>
 
-      <button
-        type="button"
-        onClick={() => setPanelOpen(true)}
-        className="no-print fixed bottom-5 right-5 z-20 rounded-full bg-ink px-5 py-3 font-display text-sm font-semibold text-paper shadow-raised transition-transform hover:-translate-y-0.5 xl:hidden"
-      >
-        Güne ekle
-      </button>
+          {view === "liste" ? (
+            <ListView events={events} today={today} onSelect={openDay} />
+          ) : null}
+
+          <p className="no-print mt-6 hidden text-xs font-medium leading-relaxed text-ink/60 lg:block">
+            Kısayollar: p panel, m takvim, y yıl, l kayıtlar, t bugün, n yeni
+            kayıt, eğik çizgi arama. Takvimde ok tuşlarıyla gün gezer, Enter ile
+            günü açarsın.
+          </p>
+        </div>
+      </div>
 
       {panelOpen ? (
         <DayPanel
@@ -434,18 +477,13 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
       {toast ? (
         <div
           role="status"
-          className={`anim-rise no-print fixed bottom-5 left-5 z-50 rounded-md px-3 py-2 text-sm shadow-raised ${
-            toast.tone === "ok" ? "bg-ink text-paper" : "bg-accent text-surface"
+          className={`anim-rise no-print nb fixed bottom-6 left-6 z-50 rounded-md px-4 py-2.5 text-sm font-bold shadow-nb ${
+            toast.tone === "ok" ? "bg-yellow text-ink" : "bg-orange"
           }`}
         >
           {toast.text}
         </div>
       ) : null}
-
-      <footer className="no-print border-t border-line px-3 py-4 text-center text-[11px] text-muted sm:px-5">
-        Almanak, {MONTH_NAMES[todayParts.month]} {todayParts.year} sürümü.
-        Veriler bu bilgisayardaki JSON dosyasında tutulur.
-      </footer>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { MONTH_NAMES, formatShort, makeKey, relativeLabel } from "@/lib/dates";
 import { indexRange, upcoming } from "@/lib/occurrences";
 import { TAGS, tagOf, type AlmanakEvent } from "@/lib/types";
-import { TagDot } from "./ui";
+import { Card } from "./ui";
 
 type Props = {
   year: number;
@@ -33,96 +33,101 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
     { month: -1, count: 0 },
   );
 
-  const tagRows = TAGS.map((tag) => ({
-    tag,
-    count: perTag.get(tag.id) ?? 0,
-  }))
+  const tagRows = TAGS.map((tag) => ({ tag, count: perTag.get(tag.id) ?? 0 }))
     .filter((row) => row.count > 0)
     .sort((left, right) => right.count - left.count)
-    .slice(0, 5);
+    .slice(0, 6);
 
   const maxTag = tagRows[0]?.count ?? 1;
-  const nextDays = upcoming(events, today, 120).slice(0, 4);
+  const nextDays = upcoming(events, today, 120).slice(0, 5);
 
   return (
-    <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <article className="rounded-lg border border-line bg-surface p-3 shadow-paper">
-        <h2 className="font-display text-[15px] font-semibold">{year} özeti</h2>
-        <p className="mt-2 flex items-baseline gap-2">
-          <span className="tabular font-display text-3xl font-bold text-accent-ink">
-            {total}
-          </span>
-          <span className="text-[13px] text-muted">kayıt, tekrarlar dahil</span>
-        </p>
-        {busiest.count > 0 ? (
-          <p className="mt-1 text-[13px] text-ink-soft">
-            En yoğun ay {MONTH_NAMES[busiest.month]}, {busiest.count} kayıt.
+    <section className="grid gap-4 lg:grid-cols-3">
+      <Card title={`${year} özeti`} accent="bg-yellow">
+        <div className="px-4 py-4">
+          <p className="flex items-baseline gap-2">
+            <span className="tabular text-4xl font-bold leading-none">
+              {total}
+            </span>
+            <span className="text-sm font-bold text-muted">
+              kayıt, tekrarlar dahil
+            </span>
           </p>
-        ) : (
-          <p className="mt-1 text-[13px] text-muted">Bu yıl henüz boş.</p>
-        )}
-      </article>
+          {busiest.count > 0 ? (
+            <p className="mt-2 text-sm font-medium text-ink-soft">
+              En yoğun ay {MONTH_NAMES[busiest.month]}, {busiest.count} kayıt.
+            </p>
+          ) : (
+            <p className="mt-2 text-sm font-medium text-muted">
+              Bu yıl henüz boş.
+            </p>
+          )}
+        </div>
+      </Card>
 
-      <article className="rounded-lg border border-line bg-surface p-3 shadow-paper">
-        <h2 className="mb-2 font-display text-[15px] font-semibold">
-          Etiket dağılımı
-        </h2>
-        {tagRows.length === 0 ? (
-          <p className="text-[13px] text-muted">Gösterilecek etiket yok.</p>
-        ) : (
-          <ul className="space-y-1.5">
-            {tagRows.map((row) => (
-              <li key={row.tag.id} className="flex items-center gap-2">
-                <TagDot tag={row.tag.id} size={6} />
-                <span className="w-20 shrink-0 text-[12px] text-ink-soft">
-                  {row.tag.label}
-                </span>
-                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-sunk">
-                  <span
-                    className="block h-full rounded-full"
-                    style={{
-                      width: `${Math.round((row.count / maxTag) * 100)}%`,
-                      backgroundColor: tagOf(row.tag.id).color,
-                    }}
-                  />
-                </span>
-                <span className="tabular w-6 text-right text-[12px] text-muted">
-                  {row.count}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </article>
+      <Card title="Etiket dağılımı" accent="bg-blue">
+        <div className="px-4 py-4">
+          {tagRows.length === 0 ? (
+            <p className="text-sm font-medium text-muted">
+              Gösterilecek etiket yok.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {tagRows.map((row) => (
+                <li key={row.tag.id} className="flex items-center gap-2.5">
+                  <span className="w-20 shrink-0 text-xs font-bold">
+                    {row.tag.label}
+                  </span>
+                  <span className="nb-thin h-4 flex-1 overflow-hidden rounded-sm bg-cream">
+                    <span
+                      className="block h-full"
+                      style={{
+                        width: `${Math.max(8, Math.round((row.count / maxTag) * 100))}%`,
+                        backgroundColor: tagOf(row.tag.id).color,
+                      }}
+                    />
+                  </span>
+                  <span className="tabular w-6 shrink-0 text-right text-xs font-bold">
+                    {row.count}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Card>
 
-      <article className="rounded-lg border border-line bg-surface p-3 shadow-paper">
-        <h2 className="mb-2 font-display text-[15px] font-semibold">Sıradaki</h2>
-        {nextDays.length === 0 ? (
-          <p className="text-[13px] text-muted">Yaklaşan kayıt yok.</p>
-        ) : (
-          <ul className="space-y-1">
-            {nextDays.map((day) => (
-              <li key={day.key}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(day.key)}
-                  className="flex w-full items-baseline gap-2 rounded-md px-1.5 py-1 text-left hover:bg-sunk"
-                >
-                  <span className="tabular w-12 shrink-0 text-[11px] font-semibold text-accent-ink">
-                    {formatShort(day.key)}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[13px]">
-                    {day.events[0].title}
-                  </span>
-                  <span className="shrink-0 text-[11px] text-muted">
-                    {relativeLabel(day.key, today)}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </article>
+      <Card title="Sıradaki" accent="bg-grass">
+        <div className="px-2 py-2">
+          {nextDays.length === 0 ? (
+            <p className="px-2 py-3 text-sm font-medium text-muted">
+              Yaklaşan kayıt yok.
+            </p>
+          ) : (
+            <ul>
+              {nextDays.map((day) => (
+                <li key={day.key}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(day.key)}
+                    className="flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
+                  >
+                    <span className="tabular w-14 shrink-0 text-xs font-bold text-rust">
+                      {formatShort(day.key)}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                      {day.events[0].title}
+                    </span>
+                    <span className="shrink-0 text-[11px] font-medium text-muted">
+                      {relativeLabel(day.key, today)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Card>
     </section>
   );
 }
