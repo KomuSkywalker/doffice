@@ -3,9 +3,10 @@
 Takvim, ajanda ve kayıt yönetimini tek ekranda toplayan kişisel ofis
 paneli. Sol menüden panel, takvim, yıl ve kayıt defteri arasında geçilir.
 
-Tasarım neo brutalist: kalın siyah çerçeveler, sert gölgeler, düz renkler
-ve her yerde Helvetica. Veri tek bir JSON dosyasında durur, dış servis
-yoktur.
+Tasarım neo brutalist: siyah çerçeveler, sert gölgeler, keskin köşeler ve
+her yerde Helvetica. Palet kartvizitten alındı: krem zemin, altın sarısı,
+nane yeşili, lila, gök mavisi ve mercan. Veri tek bir JSON dosyasında
+durur, dış servis yoktur.
 
 ## Çalıştırma
 
@@ -128,6 +129,7 @@ başlamak için `data/events.json` dosyasına `[]` yaz.
 Next.js 16 App Router, React 19, TypeScript, Tailwind v4. Takvim mantığı
 `lib/dates.ts` ve `lib/occurrences.ts` içinde saf fonksiyonlardır, dış
 tarih kütüphanesi kullanılmaz. Yazı tipi sistemdeki Helvetica'dır, web
-fontu indirilmez. Renk ve gölge token'ları `app/globals.css` içindeki
-`@theme` bloğunda tanımlıdır, metin kontrastları WCAG AA eşiğine göre
-seçilmiştir.
+fontu indirilmez. Renk, köşe ve gölge token'ları `app/globals.css`
+içindeki `@theme` bloğunda tanımlıdır, metin kontrastları WCAG AA eşiğine
+göre seçilmiştir. Tüm renkler tek yerden gelir, bileşenlerde sabit renk
+kodu yoktur.

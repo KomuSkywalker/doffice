@@ -11,10 +11,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const toneClass: Record<Tone, string> = {
-  primary: "bg-yellow text-ink nb shadow-nb-sm press-sm",
+  primary: "bg-gold text-ink nb shadow-nb-sm press-sm",
   plain: "bg-card text-ink nb shadow-nb-sm press-sm",
-  ink: "bg-ink text-peach nb shadow-nb-sm press-sm",
-  danger: "bg-orange nb shadow-nb-sm press-sm",
+  ink: "bg-ink text-paper nb shadow-nb-sm press-sm",
+  danger: "bg-coral nb shadow-nb-sm press-sm",
   quiet: "bg-transparent text-ink hover:bg-ink/10 border-[3px] border-transparent",
 };
 
@@ -176,4 +176,4 @@ export function Card({
 }
 
 export const inputClass =
-  "nb-thin w-full rounded-md bg-card px-3 py-2 text-sm font-medium text-ink placeholder:text-muted focus:outline-none focus:ring-0 focus:border-blue";
+  "nb-thin w-full rounded-md bg-card px-3 py-2 text-sm font-medium text-ink placeholder:text-muted focus:outline-none focus:ring-0 focus:border-sky";

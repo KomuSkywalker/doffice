@@ -14,10 +14,10 @@ type Props = {
 };
 
 const HEADER_TONES = [
-  "bg-blue",
-  "bg-yellow",
-  "bg-orange",
-  "bg-grass",
+  "bg-sky",
+  "bg-gold",
+  "bg-coral",
+  "bg-mint",
 ];
 
 export function YearView({
@@ -95,13 +95,13 @@ export function YearView({
                     aria-current={isToday ? "date" : undefined}
                     className={`chip-pop tabular relative flex h-[28px] w-[28px] items-center justify-center rounded-md text-[12px] font-bold ${
                       isToday
-                        ? "nb-thin bg-yellow shadow-nb-xs"
+                        ? "nb-thin bg-gold shadow-nb-xs"
                         : cell.inMonth
                           ? dayEvents.length > 0
-                            ? "nb-thin bg-cream hover:bg-peach-soft"
+                            ? "nb-thin bg-cream hover:bg-tint"
                             : "hover:bg-cream"
                           : "text-muted/60 hover:bg-cream"
-                    } ${isSelected && !isToday ? "ring-2 ring-blue" : ""}`}
+                    } ${isSelected && !isToday ? "ring-2 ring-ink" : ""}`}
                   >
                     {cell.day}
                     {marker && !isToday ? (

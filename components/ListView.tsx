@@ -66,7 +66,7 @@ export function ListView({ events, today, onSelect }: Props) {
               onClick={() => setScope(option.id)}
               aria-pressed={scope === option.id}
               className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
-                scope === option.id ? "bg-ink text-peach" : "bg-card hover:bg-cream"
+                scope === option.id ? "bg-ink text-paper" : "bg-card hover:bg-cream"
               }`}
             >
               {option.label}
@@ -83,7 +83,7 @@ export function ListView({ events, today, onSelect }: Props) {
             onClick={() => setTag("hepsi")}
             aria-pressed={tag === "hepsi"}
             className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
-              tag === "hepsi" ? "bg-ink text-peach" : "bg-card hover:bg-cream"
+              tag === "hepsi" ? "bg-ink text-paper" : "bg-card hover:bg-cream"
             }`}
           >
             Hepsi
@@ -118,7 +118,7 @@ export function ListView({ events, today, onSelect }: Props) {
             <Card
               key={monthKey}
               title={`${MONTH_NAMES[parts.month]} ${parts.year}`}
-              accent="bg-peach-soft"
+              accent="bg-tint"
               className="anim-rise"
               style={{ animationDelay: `${Math.min(groupPosition, 6) * 60}ms` }}
               action={
@@ -140,12 +140,12 @@ export function ListView({ events, today, onSelect }: Props) {
                       <button
                         type="button"
                         onClick={() => onSelect(event.date)}
-                        className="row-slide flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-peach-soft/50"
+                        className="row-slide flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-tint/50"
                       >
                         <span
                           className={`nb-thin flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md ${
                             event.date === today
-                              ? "bg-yellow"
+                              ? "bg-gold"
                               : isPast
                                 ? "bg-cream"
                                 : "bg-card"

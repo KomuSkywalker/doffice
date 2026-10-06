@@ -27,7 +27,7 @@ const ITEMS: {
     id: "panel",
     label: "Panel",
     hint: "Bugün ve özet",
-    accent: "bg-yellow",
+    accent: "bg-gold",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor" />
@@ -41,7 +41,7 @@ const ITEMS: {
     id: "ay",
     label: "Takvim",
     hint: "Ay görünümü",
-    accent: "bg-blue",
+    accent: "bg-sky",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect
@@ -63,7 +63,7 @@ const ITEMS: {
     id: "yil",
     label: "Yıl",
     hint: "On iki ay",
-    accent: "bg-orange",
+    accent: "bg-coral",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect x="3" y="4" width="7" height="7" rx="1.5" fill="currentColor" />
@@ -77,7 +77,7 @@ const ITEMS: {
     id: "liste",
     label: "Kayıtlar",
     hint: "Tüm defter",
-    accent: "bg-grass",
+    accent: "bg-mint",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <path
@@ -113,13 +113,13 @@ export function Sidebar({
       ) : null}
 
       <aside
-        className={`scroll-thin fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col gap-5 overflow-y-auto border-r-[3px] border-ink bg-peach-deep px-4 py-5 transition-transform lg:translate-x-0 ${
+        className={`scroll-thin fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col gap-5 overflow-y-auto border-r-[3px] border-ink bg-shell px-4 py-5 transition-transform lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         } no-print`}
       >
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2.5">
-            <span className="nb flex h-10 w-10 items-center justify-center rounded-md bg-ink text-lg font-bold text-yellow shadow-nb-xs">
+            <span className="nb flex h-10 w-10 items-center justify-center rounded-md bg-ink text-lg font-bold text-gold shadow-nb-xs">
               A
             </span>
             <span className="text-xl font-bold tracking-[-0.04em]">ALMANAK</span>
@@ -184,24 +184,12 @@ export function Sidebar({
           </dl>
         </div>
 
-        <div aria-hidden className="relative my-2 hidden min-h-[120px] flex-1 lg:block">
-          <div className="hatch absolute left-2 top-4 h-24 w-36 -rotate-3 rounded-sm opacity-70" />
-          <svg viewBox="0 0 100 100" className="absolute right-3 top-16 h-14 w-14">
-            <path
-              d="M50 0 L58 38 L96 46 L58 54 L50 96 L42 54 L4 46 L42 38 Z"
-              fill="#5b93f7"
-              stroke="#141210"
-              strokeWidth="4"
-            />
-          </svg>
-        </div>
-
         <div className="mt-auto space-y-2">
           {locked ? (
             <button
               type="button"
               onClick={onUnlock}
-              className="nb press-sm flex w-full items-center justify-center gap-2 rounded-md bg-orange px-3 py-2 text-sm font-bold text-ink shadow-nb-sm"
+              className="nb press-sm flex w-full items-center justify-center gap-2 rounded-md bg-coral px-3 py-2 text-sm font-bold text-ink shadow-nb-sm"
             >
               Kilitli, anahtar gir
             </button>

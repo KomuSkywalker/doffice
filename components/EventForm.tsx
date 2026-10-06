@@ -158,7 +158,7 @@ export function EventForm({
       </Field>
 
       {error ? (
-        <p className="nb-thin rounded-sm bg-orange px-2.5 py-1.5 text-xs font-bold text-ink">
+        <p className="nb-thin rounded-sm bg-coral px-2.5 py-1.5 text-xs font-bold text-ink">
           {error}
         </p>
       ) : null}

@@ -33,13 +33,13 @@ export type EventDraft = {
 };
 
 export const TAGS: { id: TagId; label: string; color: string }[] = [
-  { id: "genel", label: "Genel", color: "#d9cfc2" },
-  { id: "is", label: "İş", color: "#5b93f7" },
-  { id: "kisisel", label: "Kişisel", color: "#3b9b63" },
-  { id: "gorusme", label: "Görüşme", color: "#9f85e8" },
-  { id: "odeme", label: "Ödeme", color: "#e884ad" },
-  { id: "onemli", label: "Önemli", color: "#e3562f" },
-  { id: "kutlama", label: "Kutlama", color: "#f7e34f" },
+  { id: "genel", label: "Genel", color: "#ddd5c4" },
+  { id: "is", label: "İş", color: "#b9cfe8" },
+  { id: "kisisel", label: "Kişisel", color: "#c9ded0" },
+  { id: "gorusme", label: "Görüşme", color: "#e6b8ec" },
+  { id: "odeme", label: "Ödeme", color: "#f0c8a8" },
+  { id: "onemli", label: "Önemli", color: "#e8857a" },
+  { id: "kutlama", label: "Kutlama", color: "#eec14b" },
 ];
 
 export const TAG_IDS = TAGS.map((tag) => tag.id);

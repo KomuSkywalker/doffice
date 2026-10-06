@@ -21,7 +21,6 @@ import {
 import type { AlmanakEvent, EventDraft } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
-import { Decorations } from "./Decorations";
 import { KeyPrompt } from "./KeyPrompt";
 import { ListView } from "./ListView";
 import { MonthView } from "./MonthView";
@@ -341,8 +340,6 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
 
   return (
     <div className="relative min-h-screen">
-      <Decorations />
-
       <Sidebar
         view={view}
         counts={counts}
@@ -480,7 +477,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         <div
           role="status"
           className={`anim-rise no-print nb fixed bottom-6 left-6 z-50 rounded-md px-4 py-2.5 text-sm font-bold shadow-nb ${
-            toast.tone === "ok" ? "bg-yellow text-ink" : "bg-orange"
+            toast.tone === "ok" ? "bg-gold text-ink" : "bg-coral"
           }`}
         >
           {toast.text}

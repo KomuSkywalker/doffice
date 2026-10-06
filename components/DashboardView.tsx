@@ -70,19 +70,19 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
         <Tile
           label="Bugün"
           value={todayEvents.length}
-          accent="bg-yellow"
+          accent="bg-gold"
           delay={0}
         />
         <Tile
           label="Geciken"
           value={overdue.length}
-          accent="bg-orange"
+          accent="bg-coral"
           delay={60}
         />
         <Tile
           label="Yedi günde"
           value={weekCount}
-          accent="bg-blue"
+          accent="bg-sky"
           delay={120}
         />
         <Tile
@@ -96,7 +96,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card
           title="Bugünün programı"
-          accent="bg-blue"
+          accent="bg-sky"
           action={
             <button
               type="button"
@@ -112,7 +112,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
               {formatLong(today)}
             </p>
             {todayEvents.length === 0 ? (
-              <p className="nb-thin rounded-md border-dashed bg-peach-soft/60 px-4 py-8 text-center text-sm font-bold">
+              <p className="nb-thin rounded-md border-dashed bg-tint/60 px-4 py-8 text-center text-sm font-bold">
                 Bugün temiz. Yeni kayıt ekleyebilirsin.
               </p>
             ) : (
@@ -129,7 +129,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                         checked={event.done}
                         onChange={() => onToggleDone(event)}
                         aria-label={`${event.title} tamamlandı`}
-                        className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-orange)]"
+                        className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-ink)]"
                       />
                     ) : (
                       <span className="mt-1 w-4 shrink-0">
@@ -167,14 +167,14 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
 
         <div className="space-y-6">
           {overdue.length > 0 ? (
-            <Card title="Gecikenler" accent="bg-orange">
+            <Card title="Gecikenler" accent="bg-coral">
               <ul className="divide-y-2 divide-ink/10 px-2 py-1.5">
                 {overdue.slice(0, 6).map((event) => (
                   <li key={event.id}>
                     <button
                       type="button"
                       onClick={() => onSelect(event.date)}
-                      className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2.5 text-left hover:bg-peach-soft"
+                      className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2.5 text-left hover:bg-tint"
                     >
                       <span className="tabular w-14 shrink-0 text-xs font-bold text-rust">
                         {formatShort(event.date)}
@@ -189,7 +189,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
             </Card>
           ) : null}
 
-          <Card title="Yaklaşanlar" accent="bg-grass">
+          <Card title="Yaklaşanlar" accent="bg-mint">
             <div className="scroll-thin max-h-[460px] space-y-4 overflow-y-auto px-4 py-4">
               {nextDays.length === 0 ? (
                 <p className="text-sm font-medium text-muted">

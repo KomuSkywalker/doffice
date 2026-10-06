@@ -117,7 +117,7 @@ export function Topbar({
                     style={{ animationDelay: `${Math.min(position, 10) * 20}ms` }}
                     type="button"
                     onClick={() => onPickResult(event.date)}
-                    className="anim-rise row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
+                    className="anim-rise row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-tint"
                   >
                     <TagDot tag={event.tag} size={10} />
                     <span className="tabular w-16 shrink-0 text-xs font-bold text-muted">

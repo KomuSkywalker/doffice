@@ -71,11 +71,11 @@ export function DayPanel({
         role="dialog"
         aria-modal="true"
         aria-label={`${formatLong(dateKey)} kayıtları`}
-        className={`scroll-thin relative flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l-[3px] border-ink bg-peach ${
+        className={`scroll-thin relative flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l-[3px] border-ink bg-paper ${
           closing ? "anim-panel-out" : "anim-panel"
         }`}
       >
-        <header className="sticky top-0 z-10 border-b-[3px] border-ink bg-yellow px-5 py-4">
+        <header className="sticky top-0 z-10 border-b-[3px] border-ink bg-gold px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em]">
@@ -131,7 +131,7 @@ export function DayPanel({
                           checked={event.done}
                           onChange={() => onToggleDone(event)}
                           aria-label={`${event.title} tamamlandı`}
-                          className="mt-1 h-4.5 w-4.5 shrink-0 accent-[var(--color-orange)]"
+                          className="mt-1 h-4.5 w-4.5 shrink-0 accent-[var(--color-ink)]"
                         />
                       )}
                       <div className="min-w-0 flex-1">
@@ -183,7 +183,7 @@ export function DayPanel({
                           onClick={() => {
                             void onDelete(event.id).then(() => setConfirming(null));
                           }}
-                          className="chip-pop nb-thin rounded-sm bg-orange px-2.5 py-1 text-xs font-bold text-ink"
+                          className="chip-pop nb-thin rounded-sm bg-coral px-2.5 py-1 text-xs font-bold text-ink"
                         >
                           Sil, eminim
                         </button>
@@ -204,7 +204,7 @@ export function DayPanel({
           )}
 
           {editing && editing.repeat !== "yok" ? (
-            <p className="nb-thin rounded-md bg-orange px-3 py-2 text-xs font-bold text-ink">
+            <p className="nb-thin rounded-md bg-coral px-3 py-2 text-xs font-bold text-ink">
               Bu kayıt tekrarlı. Değişiklik tüm tekrarlara işler.
             </p>
           ) : null}

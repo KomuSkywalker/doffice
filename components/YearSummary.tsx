@@ -45,7 +45,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
     <section className="grid gap-4 lg:grid-cols-3">
       <Card
         title={`${year} özeti`}
-        accent="bg-yellow"
+        accent="bg-gold"
         className="anim-rise"
         style={{ animationDelay: "40ms" }}
       >
@@ -72,7 +72,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
       <Card
         title="Etiket dağılımı"
-        accent="bg-blue"
+        accent="bg-sky"
         className="anim-rise"
         style={{ animationDelay: "110ms" }}
       >
@@ -109,7 +109,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
       <Card
         title="Sıradaki"
-        accent="bg-grass"
+        accent="bg-mint"
         className="anim-rise"
         style={{ animationDelay: "180ms" }}
       >
@@ -125,7 +125,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
                   <button
                     type="button"
                     onClick={() => onSelect(day.key)}
-                    className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
+                    className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-tint"
                   >
                     <span className="tabular w-14 shrink-0 text-xs font-bold text-rust">
                       {formatShort(day.key)}

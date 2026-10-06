@@ -34,7 +34,7 @@ export function MonthView({
           <div
             key={label}
             className={`px-2 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.1em] ${
-              slot > 4 ? "bg-peach-deep" : "bg-peach"
+              slot > 4 ? "bg-shell" : "bg-paper"
             }`}
           >
             <span className="hidden lg:inline">{label}</span>
@@ -59,13 +59,13 @@ export function MonthView({
               style={{ animationDelay: `${Math.min(position, 41) * 9}ms` }}
               className={`cell-pop anim-fade group relative flex min-h-[86px] flex-col gap-1.5 p-2 text-left sm:min-h-[128px] sm:p-2.5 xl:min-h-[148px] ${
                 isToday
-                  ? "bg-yellow"
+                  ? "bg-gold"
                   : cell.inMonth
                     ? weekend
-                      ? "bg-cream hover:bg-peach-soft"
-                      : "bg-card hover:bg-peach-soft"
-                    : "bg-peach-soft hover:bg-peach-deep"
-              } ${isSelected && !isToday ? "ring-[3px] ring-inset ring-blue" : ""}`}
+                      ? "bg-cream hover:bg-tint"
+                      : "bg-card hover:bg-tint"
+                    : "bg-tint hover:bg-shell"
+              } ${isSelected && !isToday ? "ring-[3px] ring-inset ring-ink" : ""}`}
             >
               <span className="flex items-center justify-between">
                 <span
@@ -76,7 +76,7 @@ export function MonthView({
                   {cell.day}
                 </span>
                 {dayEvents.length > 0 ? (
-                  <span className="nb-thin tabular rounded-sm bg-ink px-1.5 py-0.5 text-[10px] font-bold text-peach">
+                  <span className="nb-thin tabular rounded-sm bg-ink px-1.5 py-0.5 text-[10px] font-bold text-paper">
                     {dayEvents.length}
                   </span>
                 ) : null}
