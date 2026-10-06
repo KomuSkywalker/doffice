@@ -1,7 +1,7 @@
-import type { AlmanakEvent } from "./types";
+import type { DofficeEvent } from "./types";
 import { daysInMonth, parseKey, shiftKey, weekdayOfKey } from "./dates";
 
-export function occursOn(event: AlmanakEvent, key: string) {
+export function occursOn(event: DofficeEvent, key: string) {
   if (event.date === key) return true;
   if (event.repeat === "yok" || key < event.date) return false;
 
@@ -29,7 +29,7 @@ export function occursOn(event: AlmanakEvent, key: string) {
   return false;
 }
 
-export function sortEvents(events: AlmanakEvent[]) {
+export function sortEvents(events: DofficeEvent[]) {
   return [...events].sort((left, right) => {
     if (left.time && right.time && left.time !== right.time) {
       return left.time < right.time ? -1 : 1;
@@ -40,16 +40,16 @@ export function sortEvents(events: AlmanakEvent[]) {
   });
 }
 
-export function eventsOn(events: AlmanakEvent[], key: string) {
+export function eventsOn(events: DofficeEvent[], key: string) {
   return sortEvents(events.filter((event) => occursOn(event, key)));
 }
 
 export function indexRange(
-  events: AlmanakEvent[],
+  events: DofficeEvent[],
   startKey: string,
   endKey: string,
 ) {
-  const index = new Map<string, AlmanakEvent[]>();
+  const index = new Map<string, DofficeEvent[]>();
   let cursor = startKey;
   let guard = 0;
   while (cursor <= endKey && guard < 800) {
@@ -62,11 +62,11 @@ export function indexRange(
 }
 
 export function upcoming(
-  events: AlmanakEvent[],
+  events: DofficeEvent[],
   fromKey: string,
   dayCount: number,
 ) {
-  const days: { key: string; events: AlmanakEvent[] }[] = [];
+  const days: { key: string; events: DofficeEvent[] }[] = [];
   let cursor = fromKey;
   for (let step = 0; step < dayCount; step += 1) {
     const found = eventsOn(events, cursor).filter((event) => !event.done);
@@ -76,7 +76,7 @@ export function upcoming(
   return days;
 }
 
-export function searchEvents(events: AlmanakEvent[], query: string) {
+export function searchEvents(events: DofficeEvent[], query: string) {
   const needle = query.trim().toLocaleLowerCase("tr");
   if (needle.length === 0) return [];
   return sortEvents(

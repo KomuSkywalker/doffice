@@ -18,7 +18,7 @@ import {
   todaySnapshot,
   writeKeyHeader,
 } from "@/lib/client-store";
-import type { AlmanakEvent, EventDraft } from "@/lib/types";
+import type { DofficeEvent, EventDraft } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
 import { KeyPrompt } from "./KeyPrompt";
@@ -30,7 +30,7 @@ import { YearSummary } from "./YearSummary";
 import { YearView } from "./YearView";
 
 type Props = {
-  initialEvents: AlmanakEvent[];
+  initialEvents: DofficeEvent[];
   locked: boolean;
   serverToday: string;
 };
@@ -43,7 +43,7 @@ type WriteCall = {
   onDone: (payload: unknown) => void;
 };
 
-export function Almanak({ initialEvents, locked, serverToday }: Props) {
+export function Doffice({ initialEvents, locked, serverToday }: Props) {
   const today = useSyncExternalStore(subscribeToday, todaySnapshot, () => serverToday);
   const hasKey = useSyncExternalStore(
     subscribeWriteKey,
@@ -77,7 +77,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   const refresh = useCallback(async () => {
     const response = await fetch("/api/events", { cache: "no-store" });
     if (!response.ok) return;
-    const data = (await response.json()) as { events: AlmanakEvent[] };
+    const data = (await response.json()) as { events: DofficeEvent[] };
     setEvents(data.events);
   }, []);
 
@@ -127,7 +127,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         path: "/api/events",
         init: { method: "POST", body: JSON.stringify(draft) },
         onDone: (payload) => {
-          const created = (payload as { event: AlmanakEvent }).event;
+          const created = (payload as { event: DofficeEvent }).event;
           setEvents((current) => [...current, created]);
           setToast({ tone: "ok", text: "Kayıt eklendi." });
         },
@@ -141,7 +141,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         path: `/api/events/${id}`,
         init: { method: "PATCH", body: JSON.stringify(draft) },
         onDone: (payload) => {
-          const updated = (payload as { event: AlmanakEvent }).event;
+          const updated = (payload as { event: DofficeEvent }).event;
           setEvents((current) =>
             current.map((event) => (event.id === id ? updated : event)),
           );
@@ -177,7 +177,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
         path: "/api/backup",
         init: { method: "PUT", body: JSON.stringify(parsed) },
         onDone: (payload) => {
-          const data = payload as { events: AlmanakEvent[]; imported: number };
+          const data = payload as { events: DofficeEvent[]; imported: number };
           setEvents(data.events);
           setToast({ tone: "ok", text: `${data.imported} kayıt yüklendi.` });
         },
@@ -187,7 +187,7 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
   );
 
   const toggleDone = useCallback(
-    (event: AlmanakEvent) => {
+    (event: DofficeEvent) => {
       const next = !event.done;
       const flip = (value: boolean) =>
         setEvents((current) =>

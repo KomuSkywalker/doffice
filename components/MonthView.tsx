@@ -1,13 +1,13 @@
 "use client";
 
 import { MONTH_NAMES, WEEKDAY_NAMES, WEEKDAY_SHORT, monthCells } from "@/lib/dates";
-import type { AlmanakEvent } from "@/lib/types";
+import type { DofficeEvent } from "@/lib/types";
 import { tagOf } from "@/lib/types";
 
 type Props = {
   year: number;
   month: number;
-  index: Map<string, AlmanakEvent[]>;
+  index: Map<string, DofficeEvent[]>;
   today: string;
   selected: string | null;
   onSelect: (key: string) => void;

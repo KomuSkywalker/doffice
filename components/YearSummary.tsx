@@ -2,12 +2,12 @@
 
 import { MONTH_NAMES, formatShort, makeKey, relativeLabel } from "@/lib/dates";
 import { indexRange, upcoming } from "@/lib/occurrences";
-import { TAGS, tagOf, type AlmanakEvent } from "@/lib/types";
+import { TAGS, tagOf, type DofficeEvent } from "@/lib/types";
 import { Card } from "./ui";
 
 type Props = {
   year: number;
-  events: AlmanakEvent[];
+  events: DofficeEvent[];
   today: string;
   onSelect: (key: string) => void;
 };

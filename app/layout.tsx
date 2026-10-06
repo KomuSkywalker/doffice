@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Almanak",
+  title: "Doffice",
   description:
     "Takvim, ajanda ve kayıt yönetimini tek ekranda toplayan kişisel ofis paneli.",
-  applicationName: "Almanak",
+  applicationName: "Doffice",
   robots: { index: false, follow: false },
   openGraph: {
-    title: "Almanak",
+    title: "Doffice",
     description: "Kişisel ofis paneli ve yıllık takvim.",
     type: "website",
     locale: "tr_TR",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7ce88",
+  themeColor: "#f5f2ea",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -11,14 +11,14 @@ import {
   weekdayOfKey,
 } from "@/lib/dates";
 import { eventsOn, indexRange, upcoming } from "@/lib/occurrences";
-import type { AlmanakEvent } from "@/lib/types";
+import type { DofficeEvent } from "@/lib/types";
 import { Card, TagChip, TagDot } from "./ui";
 
 type Props = {
-  events: AlmanakEvent[];
+  events: DofficeEvent[];
   today: string;
   onSelect: (key: string) => void;
-  onToggleDone: (event: AlmanakEvent) => void;
+  onToggleDone: (event: DofficeEvent) => void;
 };
 
 function Tile({

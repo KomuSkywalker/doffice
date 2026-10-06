@@ -1,6 +1,6 @@
 import { todayKey } from "./dates";
 
-const KEY_STORAGE = "almanak-anahtar";
+const KEY_STORAGE = "doffice-anahtar";
 
 const keyListeners = new Set<() => void>();
 
@@ -14,7 +14,7 @@ function readStoredKey() {
 
 export function writeKeyHeader(): Record<string, string> {
   const stored = readStoredKey();
-  return stored ? { "x-almanak-key": stored } : {};
+  return stored ? { "x-doffice-key": stored } : {};
 }
 
 export function saveWriteKey(value: string) {

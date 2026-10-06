@@ -2,7 +2,7 @@ import { isValidKey, isValidTime } from "./dates";
 import {
   REPEAT_IDS,
   TAG_IDS,
-  type AlmanakEvent,
+  type DofficeEvent,
   type EventDraft,
   type Repeat,
   type TagId,
@@ -90,7 +90,7 @@ export function parseDraft(input: unknown, partial: boolean): ValidationResult {
   return { ok: true, value: draft as EventDraft };
 }
 
-export function isEventShape(value: unknown): value is AlmanakEvent {
+export function isEventShape(value: unknown): value is DofficeEvent {
   if (typeof value !== "object" || value === null) return false;
   const row = value as Record<string, unknown>;
   return (

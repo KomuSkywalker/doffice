@@ -1,25 +1,25 @@
 import { promises as fs } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import type { AlmanakEvent, EventDraft } from "./types";
+import type { DofficeEvent, EventDraft } from "./types";
 import { isEventShape } from "./validate";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
 const DATA_FILE = path.join(
   DATA_DIR,
-  path.basename(process.env.ALMANAK_DATA_FILE ?? "events.json"),
+  path.basename(process.env.DOFFICE_DATA_FILE ?? "events.json"),
 );
 
 const SAMPLE_FILE = path.join(DATA_DIR, "events.sample.json");
 
 let writeChain: Promise<unknown> = Promise.resolve();
 
-function serialize(events: AlmanakEvent[]) {
+function serialize(events: DofficeEvent[]) {
   return `${JSON.stringify(events, null, 2)}\n`;
 }
 
-function normalize(row: Record<string, unknown>): AlmanakEvent {
+function normalize(row: Record<string, unknown>): DofficeEvent {
   const now = new Date().toISOString();
   return {
     id: String(row.id),
@@ -27,8 +27,8 @@ function normalize(row: Record<string, unknown>): AlmanakEvent {
     time: typeof row.time === "string" ? row.time : null,
     title: String(row.title),
     note: typeof row.note === "string" ? row.note : null,
-    tag: row.tag as AlmanakEvent["tag"],
-    repeat: row.repeat as AlmanakEvent["repeat"],
+    tag: row.tag as DofficeEvent["tag"],
+    repeat: row.repeat as DofficeEvent["repeat"],
     done: row.done === true,
     createdAt: typeof row.createdAt === "string" ? row.createdAt : now,
     updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : now,
@@ -44,14 +44,14 @@ async function readRaw(file: string) {
     .map((row) => normalize(row as unknown as Record<string, unknown>));
 }
 
-async function persist(events: AlmanakEvent[]) {
+async function persist(events: DofficeEvent[]) {
   await fs.mkdir(DATA_DIR, { recursive: true });
   const temp = `${DATA_FILE}.${process.pid}.tmp`;
   await fs.writeFile(temp, serialize(events), "utf8");
   await fs.rename(temp, DATA_FILE);
 }
 
-export async function listEvents(): Promise<AlmanakEvent[]> {
+export async function listEvents(): Promise<DofficeEvent[]> {
   try {
     return await readRaw(DATA_FILE);
   } catch (error) {
@@ -69,7 +69,7 @@ export async function listEvents(): Promise<AlmanakEvent[]> {
   }
 }
 
-function mutate<T>(task: (events: AlmanakEvent[]) => Promise<T> | T): Promise<T> {
+function mutate<T>(task: (events: DofficeEvent[]) => Promise<T> | T): Promise<T> {
   const run = async () => {
     const events = await listEvents();
     return task(events);
@@ -82,7 +82,7 @@ function mutate<T>(task: (events: AlmanakEvent[]) => Promise<T> | T): Promise<T>
 export function createEvent(draft: EventDraft) {
   return mutate(async (events) => {
     const now = new Date().toISOString();
-    const event: AlmanakEvent = {
+    const event: DofficeEvent = {
       id: randomUUID(),
       date: draft.date,
       time: draft.time ?? null,
@@ -103,7 +103,7 @@ export function updateEvent(id: string, draft: Partial<EventDraft>) {
   return mutate(async (events) => {
     const current = events.find((event) => event.id === id);
     if (!current) return null;
-    const updated: AlmanakEvent = {
+    const updated: DofficeEvent = {
       ...current,
       ...draft,
       time: draft.time === undefined ? current.time : (draft.time ?? null),
@@ -124,7 +124,7 @@ export function deleteEvent(id: string) {
   });
 }
 
-export function replaceEvents(events: AlmanakEvent[]) {
+export function replaceEvents(events: DofficeEvent[]) {
   return mutate(async () => {
     await persist(events);
     return events;

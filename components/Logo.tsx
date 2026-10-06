@@ -1,0 +1,20 @@
+const PETAL =
+  "M0 -2.4 C 3 -4.8, 5.2 -8.2, 5.2 -12 C 5.2 -15.4, 3 -17.6, 0 -17.6 C -3 -17.6, -5.2 -15.4, -5.2 -12 C -5.2 -8.2, -3 -4.8, 0 -2.4 Z";
+
+const WHITE_PETALS = [90, 150, 210, 270, 330];
+
+export function Logo({ className = "h-12 w-12" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} role="img" aria-label="Doffice">
+      <rect width="48" height="48" rx="11" fill="#0d0d0d" />
+      <g transform="translate(24 24) scale(0.9)">
+        <g fill="#ffffff">
+          {WHITE_PETALS.map((angle) => (
+            <path key={angle} d={PETAL} transform={`rotate(${angle})`} />
+          ))}
+        </g>
+        <path d={PETAL} transform="rotate(30)" fill="#efb22f" />
+      </g>
+    </svg>
+  );
+}

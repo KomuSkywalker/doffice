@@ -2,7 +2,7 @@
 
 import type { RefObject } from "react";
 import { MONTH_NAMES, formatLong, formatShort } from "@/lib/dates";
-import type { AlmanakEvent } from "@/lib/types";
+import type { DofficeEvent } from "@/lib/types";
 import type { ViewId } from "./Sidebar";
 import { Button, SquareButton, TagDot } from "./ui";
 
@@ -12,7 +12,7 @@ type Props = {
   month: number;
   today: string;
   query: string;
-  results: AlmanakEvent[];
+  results: DofficeEvent[];
   searchRef: RefObject<HTMLInputElement | null>;
   onPrev: () => void;
   onNext: () => void;

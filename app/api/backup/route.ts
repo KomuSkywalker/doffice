@@ -3,7 +3,7 @@ import { allowRequest, throttledResponse } from "@/lib/rate-limit";
 import { listEvents, replaceEvents } from "@/lib/store";
 import { isEventShape } from "@/lib/validate";
 import { todayKey } from "@/lib/dates";
-import type { AlmanakEvent } from "@/lib/types";
+import type { DofficeEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ export async function GET() {
   return new Response(`${JSON.stringify(events, null, 2)}\n`, {
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "content-disposition": `attachment; filename="almanak-${todayKey()}.json"`,
+      "content-disposition": `attachment; filename="doffice-${todayKey()}.json"`,
     },
   });
 }
@@ -50,7 +50,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const valid = rows.filter(isEventShape) as AlmanakEvent[];
+  const valid = rows.filter(isEventShape) as DofficeEvent[];
   if (valid.length === 0) {
     return Response.json(
       { error: "Yedekte geçerli kayıt bulunamadı." },

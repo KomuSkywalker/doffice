@@ -1,7 +1,7 @@
-# Almanak
+# Doffice
 
 Takvim, ajanda ve kayıt yönetimini tek ekranda toplayan kişisel ofis
-paneli. Sol menüden panel, takvim, yıl ve kayıt defteri arasında geçilir.
+paneli. Sol kenardaki ikon rayından bölümler arasında geçilir.
 
 Tasarım neo brutalist: siyah çerçeveler, sert gölgeler, keskin köşeler ve
 her yerde Helvetica. Palet kartvizitten alındı: krem zemin, altın sarısı,
@@ -42,8 +42,10 @@ altta ayarlar durur.
 - **Ayarlar**: yedek alma, yedek yükleme ve yazma kilidi. Rayın en
   altındaki dişli açar.
 
-Rayın üstündeki kesik çizgili kare logo yeri. Logo 48x48 piksellik kare
-alana oturur, dosya gelince oraya yerleşir.
+Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
+içinde vektör olarak durur, aynı çizim `app/icon.svg` ile sekme
+ikonunda, `app/apple-icon.png` ile iOS kısayolunda ve `public/logo.svg`
+ile paylaşımlarda kullanılır.
 
 ## Kayıt alanları
 
@@ -88,8 +90,8 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 
 | Değişken | Varsayılan | Açıklama |
 | --- | --- | --- |
-| `ALMANAK_KEY` | boş | Doluysa ekleme, düzenleme, silme ve yedek yükleme için anahtar istenir. Boşsa yazma serbesttir, yerel kullanım içindir. |
-| `ALMANAK_DATA_FILE` | `events.json` | `data/` klasörü içindeki veri dosyasının adı. |
+| `DOFFICE_KEY` | boş | Doluysa ekleme, düzenleme, silme ve yedek yükleme için anahtar istenir. Boşsa yazma serbesttir, yerel kullanım içindir. |
+| `DOFFICE_DATA_FILE` | `events.json` | `data/` klasörü içindeki veri dosyasının adı. |
 
 Anahtar tarayıcıda yalnızca sekme oturumu boyunca saklanır.
 

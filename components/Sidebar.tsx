@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Logo } from "./Logo";
 
 export type ViewId = "panel" | "ay" | "yil";
 
@@ -127,10 +128,20 @@ function RailButton({
 export function Sidebar({ view, onSelect, onOpenSettings, settingsOpen }: Props) {
   return (
     <aside className="no-print fixed inset-y-0 left-0 z-40 flex w-[76px] flex-col items-center gap-3 border-r-2 border-ink bg-shell py-4">
-      <div
-        aria-hidden
-        className="mb-1 flex h-12 w-12 items-center justify-center rounded-md border-2 border-dashed border-ink/35"
-      />
+      <button
+        type="button"
+        onClick={() => onSelect("panel")}
+        aria-label="Doffice, ana sayfaya git"
+        className="press-sm group relative mb-1 h-12 w-12 rounded-[11px] shadow-nb-sm"
+      >
+        <Logo className="h-12 w-12" />
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-sm nb bg-ink px-2.5 py-1 text-xs font-bold text-paper opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        >
+          Doffice
+        </span>
+      </button>
 
       <nav className="flex flex-col gap-2.5">
         {ITEMS.map((item) => (

@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatLong, relativeLabel } from "@/lib/dates";
-import { repeatLabel, type AlmanakEvent, type EventDraft } from "@/lib/types";
+import { repeatLabel, type DofficeEvent, type EventDraft } from "@/lib/types";
 import { EventForm } from "./EventForm";
 import { Button, TagChip } from "./ui";
 
 type Props = {
   dateKey: string;
   today: string;
-  events: AlmanakEvent[];
+  events: DofficeEvent[];
   pending: boolean;
   onClose: () => void;
   onCreate: (draft: EventDraft) => Promise<boolean>;
   onUpdate: (id: string, draft: EventDraft) => Promise<boolean>;
   onDelete: (id: string) => Promise<boolean>;
-  onToggleDone: (event: AlmanakEvent) => void;
+  onToggleDone: (event: DofficeEvent) => void;
 };
 
 export function DayPanel({
@@ -29,7 +29,7 @@ export function DayPanel({
   onDelete,
   onToggleDone,
 }: Props) {
-  const [editing, setEditing] = useState<AlmanakEvent | null>(null);
+  const [editing, setEditing] = useState<DofficeEvent | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
   const closeTimer = useRef<number | null>(null);

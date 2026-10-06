@@ -1,13 +1,13 @@
 import { timingSafeEqual } from "node:crypto";
 
 export function writeKeyRequired() {
-  return Boolean(process.env.ALMANAK_KEY);
+  return Boolean(process.env.DOFFICE_KEY);
 }
 
 export function hasWriteAccess(request: Request) {
-  const expected = process.env.ALMANAK_KEY;
+  const expected = process.env.DOFFICE_KEY;
   if (!expected) return true;
-  const provided = request.headers.get("x-almanak-key") ?? "";
+  const provided = request.headers.get("x-doffice-key") ?? "";
   const given = Buffer.from(provided);
   const target = Buffer.from(expected);
   if (given.length !== target.length) return false;

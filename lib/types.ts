@@ -9,7 +9,7 @@ export type TagId =
 
 export type Repeat = "yok" | "haftalik" | "aylik" | "yillik";
 
-export type AlmanakEvent = {
+export type DofficeEvent = {
   id: string;
   date: string;
   time: string | null;

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { AlmanakEvent, EventDraft, Repeat, TagId } from "@/lib/types";
+import type { DofficeEvent, EventDraft, Repeat, TagId } from "@/lib/types";
 import { REPEATS } from "@/lib/types";
 import { Button, Field, FieldGroup, TagPicker, inputClass } from "./ui";
 
 type Props = {
   dateKey: string;
-  editing: AlmanakEvent | null;
+  editing: DofficeEvent | null;
   pending: boolean;
   onSubmit: (draft: EventDraft) => Promise<boolean>;
   onCancel: () => void;
