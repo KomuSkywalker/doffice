@@ -128,6 +128,67 @@
   box-shadow: 1px 1px 0 0 var(--color-ink);
 }
 
+.lift {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.lift:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 0 var(--color-ink);
+}
+
+.row-slide {
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease;
+}
+
+.row-slide:hover {
+  transform: translateX(5px);
+}
+
+.row-slide:active {
+  transform: translateX(2px);
+}
+
+.cell-pop {
+  transition:
+    transform 130ms ease,
+    box-shadow 130ms ease,
+    background-color 130ms ease;
+}
+
+.cell-pop:hover {
+  z-index: 5;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--color-ink);
+}
+
+.cell-pop:active {
+  z-index: 5;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 var(--color-ink);
+}
+
+.chip-pop {
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+.chip-pop:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--color-ink);
+}
+
+.chip-pop:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
 .hatch {
   background-image: repeating-linear-gradient(
     45deg,
@@ -160,6 +221,31 @@
   }
 }
 
+@keyframes nb-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes nb-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes nb-rise {
   from {
     opacity: 0;
@@ -183,17 +269,48 @@
   animation: nb-rise 180ms ease-out both;
 }
 
+.anim-panel-out {
+  animation: nb-slide-out 170ms ease-in both;
+}
+
+.anim-pop {
+  animation: nb-pop 220ms cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+.anim-view {
+  animation: nb-rise 220ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-panel,
+  .anim-panel-out,
   .anim-fade,
-  .anim-rise {
+  .anim-rise,
+  .anim-pop,
+  .anim-view {
     animation: none;
+  }
+
+  .press,
+  .press-sm,
+  .lift,
+  .row-slide,
+  .cell-pop,
+  .chip-pop {
+    transition: none;
   }
 
   .press:hover,
   .press-sm:hover,
   .press:active,
-  .press-sm:active {
+  .press-sm:active,
+  .lift:hover,
+  .row-slide:hover,
+  .row-slide:active,
+  .cell-pop:hover,
+  .cell-pop:active,
+  .chip-pop:hover,
+  .chip-pop:active {
     transform: none;
   }
 }

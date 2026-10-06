@@ -25,13 +25,18 @@ function Tile({
   label,
   value,
   accent,
+  delay,
 }: {
   label: string;
   value: number;
   accent: string;
+  delay: number;
 }) {
   return (
-    <div className={`nb rounded-lg px-4 py-3.5 shadow-nb ${accent}`}>
+    <div
+      style={{ animationDelay: `${delay}ms` }}
+      className={`lift anim-pop nb rounded-lg px-4 py-3.5 shadow-nb ${accent}`}
+    >
       <p className="text-[11px] font-bold uppercase tracking-[0.12em]">{label}</p>
       <p className="tabular mt-1 text-3xl font-bold leading-none">{value}</p>
     </div>
@@ -62,13 +67,29 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="Bugün" value={todayEvents.length} accent="bg-yellow" />
-        <Tile label="Geciken" value={overdue.length} accent="bg-orange" />
-        <Tile label="Yedi günde" value={weekCount} accent="bg-blue" />
+        <Tile
+          label="Bugün"
+          value={todayEvents.length}
+          accent="bg-yellow"
+          delay={0}
+        />
+        <Tile
+          label="Geciken"
+          value={overdue.length}
+          accent="bg-orange"
+          delay={60}
+        />
+        <Tile
+          label="Yedi günde"
+          value={weekCount}
+          accent="bg-blue"
+          delay={120}
+        />
         <Tile
           label={`${MONTH_NAMES[parts.month]} ayı`}
           value={monthCount}
           accent="bg-card"
+          delay={180}
         />
       </div>
 
@@ -80,7 +101,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
             <button
               type="button"
               onClick={() => onSelect(today)}
-              className="nb-thin rounded-sm bg-card px-2 py-1 text-[11px] font-bold text-ink"
+              className="chip-pop nb-thin rounded-sm bg-card px-2 py-1 text-[11px] font-bold text-ink"
             >
               Güne git
             </button>
@@ -96,10 +117,11 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
               </p>
             ) : (
               <ul className="space-y-2.5">
-                {todayEvents.map((event) => (
+                {todayEvents.map((event, position) => (
                   <li
                     key={event.id}
-                    className="nb-thin flex items-start gap-3 rounded-md bg-cream px-3 py-2.5"
+                    style={{ animationDelay: `${position * 45}ms` }}
+                    className="anim-rise nb-thin flex items-start gap-3 rounded-md bg-cream px-3 py-2.5"
                   >
                     {event.repeat === "yok" ? (
                       <input
@@ -122,8 +144,8 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                           </span>
                         ) : null}
                         <span
-                          className={`text-sm font-bold ${
-                            event.done ? "text-muted line-through" : ""
+                          className={`text-sm font-bold transition-all duration-200 ${
+                            event.done ? "text-muted line-through opacity-70" : ""
                           }`}
                         >
                           {event.title}
@@ -152,7 +174,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                     <button
                       type="button"
                       onClick={() => onSelect(event.date)}
-                      className="flex w-full items-center gap-2.5 rounded-sm px-2 py-2.5 text-left hover:bg-peach-soft"
+                      className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2.5 text-left hover:bg-peach-soft"
                     >
                       <span className="tabular w-14 shrink-0 text-xs font-bold text-rust">
                         {formatShort(event.date)}
@@ -194,7 +216,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
                           <button
                             type="button"
                             onClick={() => onSelect(day.key)}
-                            className="nb-thin flex w-full items-center gap-2 rounded-sm bg-cream px-2.5 py-1.5 text-left"
+                            className="row-slide nb-thin flex w-full items-center gap-2 rounded-sm bg-cream px-2.5 py-1.5 text-left"
                           >
                             <TagDot tag={event.tag} size={10} />
                             <span className="min-w-0 flex-1 truncate text-[13px] font-bold">

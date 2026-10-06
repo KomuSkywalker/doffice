@@ -135,7 +135,7 @@ export function Sidebar({
         </div>
 
         <nav className="flex flex-col gap-2">
-          {ITEMS.map((item) => {
+          {ITEMS.map((item, position) => {
             const active = item.id === view;
             return (
               <button
@@ -143,7 +143,8 @@ export function Sidebar({
                 type="button"
                 onClick={() => onSelect(item.id)}
                 aria-current={active ? "page" : undefined}
-                className={`nb press-sm flex items-center gap-3 rounded-md px-3 py-2.5 text-left font-bold ${
+                style={{ animationDelay: `${position * 55}ms` }}
+                className={`anim-rise nb press-sm flex items-center gap-3 rounded-md px-3 py-2.5 text-left font-bold ${
                   active
                     ? `${item.accent} shadow-nb-sm`
                     : "bg-card/70 shadow-none hover:bg-card"

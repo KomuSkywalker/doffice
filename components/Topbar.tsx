@@ -71,7 +71,10 @@ export function Topbar({
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/80">
             {TITLES[view]}
           </p>
-          <h1 className="mt-1 text-3xl font-bold leading-none tracking-[-0.04em] sm:text-4xl">
+          <h1
+            key={heading}
+            className="anim-rise mt-1 text-3xl font-bold leading-none tracking-[-0.04em] sm:text-4xl"
+          >
             {heading}
           </h1>
         </div>
@@ -108,12 +111,13 @@ export function Topbar({
                   Eşleşen kayıt yok.
                 </p>
               ) : (
-                results.slice(0, 40).map((event) => (
+                results.slice(0, 40).map((event, position) => (
                   <button
                     key={event.id}
+                    style={{ animationDelay: `${Math.min(position, 10) * 20}ms` }}
                     type="button"
                     onClick={() => onPickResult(event.date)}
-                    className="flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
+                    className="anim-rise row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
                   >
                     <TagDot tag={event.tag} size={10} />
                     <span className="tabular w-16 shrink-0 text-xs font-bold text-muted">

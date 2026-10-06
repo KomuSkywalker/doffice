@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatLong, relativeLabel } from "@/lib/dates";
 import { repeatLabel, type AlmanakEvent, type EventDraft } from "@/lib/types";
 import { EventForm } from "./EventForm";
@@ -31,14 +31,29 @@ export function DayPanel({
 }: Props) {
   const [editing, setEditing] = useState<AlmanakEvent | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<number | null>(null);
+
+  const requestClose = useCallback(() => {
+    setClosing((current) => {
+      if (!current) closeTimer.current = window.setTimeout(onClose, 160);
+      return true;
+    });
+  }, [onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") requestClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [requestClose]);
 
   const doneCount = events.filter((event) => event.done).length;
 
@@ -47,14 +62,18 @@ export function DayPanel({
       <button
         type="button"
         aria-label="Paneli kapat"
-        onClick={onClose}
-        className="anim-fade absolute inset-0 bg-ink/35"
+        onClick={requestClose}
+        className={`absolute inset-0 bg-ink/35 transition-opacity duration-150 ${
+          closing ? "opacity-0" : "anim-fade"
+        }`}
       />
       <aside
         role="dialog"
         aria-modal="true"
         aria-label={`${formatLong(dateKey)} kayıtları`}
-        className="anim-panel scroll-thin relative flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l-[3px] border-ink bg-peach"
+        className={`scroll-thin relative flex h-full w-full max-w-[480px] flex-col overflow-y-auto border-l-[3px] border-ink bg-peach ${
+          closing ? "anim-panel-out" : "anim-panel"
+        }`}
       >
         <header className="sticky top-0 z-10 border-b-[3px] border-ink bg-yellow px-5 py-4">
           <div className="flex items-start justify-between gap-3">
@@ -75,7 +94,7 @@ export function DayPanel({
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               aria-label="Kapat"
               className="nb press-sm shrink-0 rounded-md bg-card px-3 py-1.5 text-lg font-bold leading-none shadow-nb-sm"
             >
@@ -93,12 +112,13 @@ export function DayPanel({
             </p>
           ) : (
             <ul className="space-y-3">
-              {events.map((event) => {
+              {events.map((event, position) => {
                 const repeating = event.repeat !== "yok";
                 return (
                   <li
                     key={event.id}
-                    className="anim-rise nb rounded-lg bg-card p-3.5 shadow-nb-sm"
+                    style={{ animationDelay: `${Math.min(position, 8) * 50}ms` }}
+                    className="anim-rise lift nb rounded-lg bg-card p-3.5 shadow-nb-sm"
                   >
                     <div className="flex items-start gap-3">
                       {repeating ? (
@@ -122,8 +142,8 @@ export function DayPanel({
                             </span>
                           ) : null}
                           <h3
-                            className={`text-base font-bold leading-snug ${
-                              event.done ? "text-muted line-through" : ""
+                            className={`text-base font-bold leading-snug transition-all duration-200 ${
+                              event.done ? "text-muted line-through opacity-70" : ""
                             }`}
                           >
                             {event.title}
@@ -152,7 +172,7 @@ export function DayPanel({
                           setEditing(event);
                           setConfirming(null);
                         }}
-                        className="nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
+                        className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
                       >
                         Düzenle
                       </button>
@@ -163,7 +183,7 @@ export function DayPanel({
                           onClick={() => {
                             void onDelete(event.id).then(() => setConfirming(null));
                           }}
-                          className="nb-thin rounded-sm bg-orange px-2.5 py-1 text-xs font-bold text-ink"
+                          className="chip-pop nb-thin rounded-sm bg-orange px-2.5 py-1 text-xs font-bold text-ink"
                         >
                           Sil, eminim
                         </button>
@@ -171,7 +191,7 @@ export function DayPanel({
                         <button
                           type="button"
                           onClick={() => setConfirming(event.id)}
-                          className="nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
+                          className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-cream"
                         >
                           Sil
                         </button>
@@ -205,7 +225,7 @@ export function DayPanel({
             }}
           />
 
-          <Button tone="plain" onClick={onClose} className="w-full">
+          <Button tone="plain" onClick={requestClose} className="w-full">
             Paneli kapat
           </Button>
         </div>

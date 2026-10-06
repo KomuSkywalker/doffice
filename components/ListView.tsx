@@ -65,7 +65,7 @@ export function ListView({ events, today, onSelect }: Props) {
               type="button"
               onClick={() => setScope(option.id)}
               aria-pressed={scope === option.id}
-              className={`nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
+              className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
                 scope === option.id ? "bg-ink text-peach" : "bg-card hover:bg-cream"
               }`}
             >
@@ -82,7 +82,7 @@ export function ListView({ events, today, onSelect }: Props) {
             type="button"
             onClick={() => setTag("hepsi")}
             aria-pressed={tag === "hepsi"}
-            className={`nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
+            className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
               tag === "hepsi" ? "bg-ink text-peach" : "bg-card hover:bg-cream"
             }`}
           >
@@ -94,7 +94,7 @@ export function ListView({ events, today, onSelect }: Props) {
               type="button"
               onClick={() => setTag(option.id)}
               aria-pressed={tag === option.id}
-              className={`nb-thin rounded-sm px-2.5 py-1 text-xs font-bold text-ink ${
+              className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold text-ink ${
                 tag === option.id ? "shadow-nb-xs" : "opacity-55 hover:opacity-100"
               }`}
               style={{ backgroundColor: option.color }}
@@ -112,13 +112,15 @@ export function ListView({ events, today, onSelect }: Props) {
           </p>
         </Card>
       ) : (
-        groups.map(([monthKey, monthRows]) => {
+        groups.map(([monthKey, monthRows], groupPosition) => {
           const parts = parseKey(`${monthKey}-01`);
           return (
             <Card
               key={monthKey}
               title={`${MONTH_NAMES[parts.month]} ${parts.year}`}
               accent="bg-peach-soft"
+              className="anim-rise"
+              style={{ animationDelay: `${Math.min(groupPosition, 6) * 60}ms` }}
               action={
                 <span className="tabular text-xs font-bold text-muted">
                   {monthRows.length} kayıt
@@ -126,18 +128,19 @@ export function ListView({ events, today, onSelect }: Props) {
               }
             >
               <ul>
-                {monthRows.map((event) => {
+                {monthRows.map((event, position) => {
                   const day = parseKey(event.date);
                   const isPast = event.date < today;
                   return (
                     <li
                       key={event.id}
-                      className="border-b-2 border-ink/10 last:border-b-0"
+                      style={{ animationDelay: `${Math.min(position, 12) * 25}ms` }}
+                      className="anim-rise border-b-2 border-ink/10 last:border-b-0"
                     >
                       <button
                         type="button"
                         onClick={() => onSelect(event.date)}
-                        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-peach-soft/50"
+                        className="row-slide flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-peach-soft/50"
                       >
                         <span
                           className={`nb-thin flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md ${

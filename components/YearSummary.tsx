@@ -43,7 +43,12 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
   return (
     <section className="grid gap-4 lg:grid-cols-3">
-      <Card title={`${year} özeti`} accent="bg-yellow">
+      <Card
+        title={`${year} özeti`}
+        accent="bg-yellow"
+        className="anim-rise"
+        style={{ animationDelay: "40ms" }}
+      >
         <div className="px-4 py-4">
           <p className="flex items-baseline gap-2">
             <span className="tabular text-4xl font-bold leading-none">
@@ -65,7 +70,12 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
         </div>
       </Card>
 
-      <Card title="Etiket dağılımı" accent="bg-blue">
+      <Card
+        title="Etiket dağılımı"
+        accent="bg-blue"
+        className="anim-rise"
+        style={{ animationDelay: "110ms" }}
+      >
         <div className="px-4 py-4">
           {tagRows.length === 0 ? (
             <p className="text-sm font-medium text-muted">
@@ -80,7 +90,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
                   </span>
                   <span className="nb-thin h-4 flex-1 overflow-hidden rounded-sm bg-cream">
                     <span
-                      className="block h-full"
+                      className="block h-full transition-[width] duration-500 ease-out"
                       style={{
                         width: `${Math.max(8, Math.round((row.count / maxTag) * 100))}%`,
                         backgroundColor: tagOf(row.tag.id).color,
@@ -97,7 +107,12 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
         </div>
       </Card>
 
-      <Card title="Sıradaki" accent="bg-grass">
+      <Card
+        title="Sıradaki"
+        accent="bg-grass"
+        className="anim-rise"
+        style={{ animationDelay: "180ms" }}
+      >
         <div className="px-2 py-2">
           {nextDays.length === 0 ? (
             <p className="px-2 py-3 text-sm font-medium text-muted">
@@ -110,7 +125,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
                   <button
                     type="button"
                     onClick={() => onSelect(day.key)}
-                    className="flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
+                    className="row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-peach-soft"
                   >
                     <span className="tabular w-14 shrink-0 text-xs font-bold text-rust">
                       {formatShort(day.key)}

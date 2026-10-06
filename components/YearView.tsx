@@ -34,6 +34,7 @@ export function YearView({
       className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       {MONTH_NAMES.map((name, month) => {
+        const cardDelay = month * 28;
         const cells = monthCells(year, month);
         const monthCount = cells.reduce((total, cell) => {
           if (!cell.inMonth) return total;
@@ -43,7 +44,8 @@ export function YearView({
         return (
           <article
             key={name}
-            className="nb overflow-hidden rounded-lg bg-card shadow-nb"
+            style={{ animationDelay: `${cardDelay}ms` }}
+            className="lift anim-rise nb overflow-hidden rounded-lg bg-card shadow-nb"
           >
             <header
               className={`flex items-center justify-between border-b-[3px] border-ink px-3 py-2 ${
@@ -53,7 +55,7 @@ export function YearView({
               <button
                 type="button"
                 onClick={() => onOpenMonth(month)}
-                className="text-sm font-bold tracking-tight underline-offset-4 hover:underline"
+                className="chip-pop rounded-sm px-1 text-sm font-bold tracking-tight underline-offset-4 hover:underline"
               >
                 {name}
               </button>
@@ -91,7 +93,7 @@ export function YearView({
                       dayEvents.length > 0 ? `, ${dayEvents.length} kayıt` : ""
                     }`}
                     aria-current={isToday ? "date" : undefined}
-                    className={`tabular relative flex h-[28px] w-[28px] items-center justify-center rounded-md text-[12px] font-bold transition-colors ${
+                    className={`chip-pop tabular relative flex h-[28px] w-[28px] items-center justify-center rounded-md text-[12px] font-bold ${
                       isToday
                         ? "nb-thin bg-yellow shadow-nb-xs"
                         : cell.inMonth

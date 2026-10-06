@@ -22,13 +22,14 @@ export function MonthView({
   onSelect,
 }: Props) {
   const cells = monthCells(year, month);
+  const gridKey = `${year}-${month}`;
 
   return (
     <section
       aria-label={`${MONTH_NAMES[month]} ${year} takvimi`}
       className="nb overflow-hidden rounded-lg bg-ink shadow-nb"
     >
-      <div className="grid grid-cols-7 gap-[2px] bg-ink">
+      <div key={gridKey} className="grid grid-cols-7 gap-[2px] bg-ink">
         {WEEKDAY_NAMES.map((label, slot) => (
           <div
             key={label}
@@ -41,7 +42,7 @@ export function MonthView({
           </div>
         ))}
 
-        {cells.map((cell) => {
+        {cells.map((cell, position) => {
           const dayEvents = index.get(cell.key) ?? [];
           const isToday = cell.key === today;
           const isSelected = cell.key === selected;
@@ -55,7 +56,8 @@ export function MonthView({
               type="button"
               onClick={() => onSelect(cell.key)}
               aria-current={isToday ? "date" : undefined}
-              className={`group relative flex min-h-[86px] flex-col gap-1.5 p-2 text-left transition-colors sm:min-h-[128px] sm:p-2.5 xl:min-h-[148px] ${
+              style={{ animationDelay: `${Math.min(position, 41) * 9}ms` }}
+              className={`cell-pop anim-fade group relative flex min-h-[86px] flex-col gap-1.5 p-2 text-left sm:min-h-[128px] sm:p-2.5 xl:min-h-[148px] ${
                 isToday
                   ? "bg-yellow"
                   : cell.inMonth

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { TAGS, tagOf, type TagId } from "@/lib/types";
 
 type Tone = "primary" | "plain" | "ink" | "danger" | "quiet";
@@ -148,15 +148,18 @@ export function Card({
   action,
   children,
   className = "",
+  style,
 }: {
   title?: string;
   accent?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 }) {
   return (
     <section
+      style={style}
       className={`nb overflow-hidden rounded-lg bg-card shadow-nb ${className}`}
     >
       {title ? (

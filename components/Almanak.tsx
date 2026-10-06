@@ -388,51 +388,53 @@ export function Almanak({ initialEvents, locked, serverToday }: Props) {
             onOpenMenu={() => setMenuOpen(true)}
           />
 
-          {view === "panel" ? (
-            <DashboardView
-              events={events}
-              today={today}
-              onSelect={openDay}
-              onToggleDone={toggleDone}
-            />
-          ) : null}
-
-          {view === "ay" ? (
-            <MonthView
-              year={cursor.year}
-              month={cursor.month}
-              index={rangeIndex}
-              today={today}
-              selected={selected}
-              onSelect={openDay}
-            />
-          ) : null}
-
-          {view === "yil" ? (
-            <div className="space-y-5">
-              <YearView
-                year={cursor.year}
-                index={rangeIndex}
-                today={today}
-                selected={selected}
-                onSelectDay={openDay}
-                onOpenMonth={(month) => {
-                  setCursor((current) => ({ ...current, month }));
-                  setView("ay");
-                }}
-              />
-              <YearSummary
-                year={cursor.year}
+          <div key={view} className="anim-view">
+            {view === "panel" ? (
+              <DashboardView
                 events={events}
                 today={today}
                 onSelect={openDay}
+                onToggleDone={toggleDone}
               />
+            ) : null}
+
+            {view === "ay" ? (
+              <MonthView
+                year={cursor.year}
+                month={cursor.month}
+                index={rangeIndex}
+                today={today}
+                selected={selected}
+                onSelect={openDay}
+              />
+            ) : null}
+
+            {view === "yil" ? (
+              <div className="space-y-5">
+                <YearView
+                  year={cursor.year}
+                  index={rangeIndex}
+                  today={today}
+                  selected={selected}
+                  onSelectDay={openDay}
+                  onOpenMonth={(month) => {
+                    setCursor((current) => ({ ...current, month }));
+                    setView("ay");
+                  }}
+                />
+                <YearSummary
+                  year={cursor.year}
+                  events={events}
+                  today={today}
+                  onSelect={openDay}
+                />
             </div>
           ) : null}
 
-          {view === "liste" ? (
-            <ListView events={events} today={today} onSelect={openDay} />
-          ) : null}
+            {view === "liste" ? (
+              <ListView events={events} today={today} onSelect={openDay} />
+            ) : null}
+          </div>
 
           <p className="no-print mt-6 hidden text-xs font-medium leading-relaxed text-ink/60 lg:block">
             Kısayollar: p panel, m takvim, y yıl, l kayıtlar, t bugün, n yeni
