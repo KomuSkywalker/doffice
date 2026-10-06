@@ -1,5 +1,5 @@
 import { slotIsFree } from "@/lib/availability";
-import { todayKey } from "@/lib/dates";
+import { nowInZone } from "@/lib/clock";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
 import { createAppointment, readDoc, StorageError } from "@/lib/store";
 import { parseAppointment } from "@/lib/validate";
@@ -22,9 +22,9 @@ export async function POST(request: Request) {
   }
 
   const doc = await readDoc();
-  const now = new Date();
-  const nowKey = todayKey();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const now = nowInZone();
+  const nowKey = now.key;
+  const nowMinutes = now.minutes;
 
   const free = slotIsFree(
     doc.availability,

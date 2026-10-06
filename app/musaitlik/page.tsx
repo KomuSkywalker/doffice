@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { BookingPage } from "@/components/BookingPage";
 import { availableDays } from "@/lib/availability";
-import { parseKey, todayKey } from "@/lib/dates";
+import { nowInZone } from "@/lib/clock";
+import { parseKey } from "@/lib/dates";
 import { readDoc } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -14,9 +15,9 @@ export const metadata: Metadata = {
 
 export default async function MusaitlikPage() {
   const doc = await readDoc();
-  const now = new Date();
-  const nowKey = todayKey();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const now = nowInZone();
+  const nowKey = now.key;
+  const nowMinutes = now.minutes;
   const parts = parseKey(nowKey);
   const month = `${parts.year}-${String(parts.month + 1).padStart(2, "0")}`;
 

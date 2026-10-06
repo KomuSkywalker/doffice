@@ -2,7 +2,7 @@ import { requestAuthorized, unauthorizedResponse } from "@/lib/session";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
 import { listEvents, replaceEvents, StorageError } from "@/lib/store";
 import { isEventShape } from "@/lib/validate";
-import { todayKey } from "@/lib/dates";
+import { nowInZone } from "@/lib/clock";
 import type { DofficeEvent } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   return new Response(`${JSON.stringify(events, null, 2)}\n`, {
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "content-disposition": `attachment; filename="doffice-${todayKey()}.json"`,
+      "content-disposition": `attachment; filename="doffice-${nowInZone().key}.json"`,
     },
   });
 }

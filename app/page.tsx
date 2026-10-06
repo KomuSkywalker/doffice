@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { Doffice } from "@/components/Doffice";
 import { LoginScreen } from "@/components/LoginScreen";
 import { SetupNotice } from "@/components/SetupNotice";
-import { todayKey } from "@/lib/dates";
+import { nowInZone } from "@/lib/clock";
 import {
   gateEnabled,
   SESSION_COOKIE_NAME,
@@ -30,7 +30,7 @@ export default async function HomePage() {
       initialAvailability={doc.availability}
       initialNotifications={doc.notifications}
       initialAppointments={doc.appointments}
-      serverToday={todayKey()}
+      serverToday={nowInZone().key}
     />
   );
 }
