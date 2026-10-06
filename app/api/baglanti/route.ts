@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Gövde JSON olmalı." }, { status: 400 });
   }
 
-  const raw = body as { label?: unknown; lifetimeDays?: unknown };
+  const raw = body as { label?: unknown; lifetimeDays?: unknown; note?: unknown };
   const label = typeof raw.label === "string" ? raw.label.trim() : "";
   if (label.length > 60) {
     return Response.json(
@@ -32,13 +32,22 @@ export async function POST(request: Request) {
     );
   }
 
+  const note = typeof raw.note === "string" ? raw.note.trim() : "";
+  if (note.length > 300) {
+    return Response.json({ error: "Not en fazla 300 karakter." }, { status: 400 });
+  }
+
   const lifetimeDays = Number(raw.lifetimeDays ?? 0);
   if (!LIFETIMES.includes(lifetimeDays)) {
     return Response.json({ error: "Geçersiz süre." }, { status: 400 });
   }
 
   try {
-    const link = await createLink(label.length > 0 ? label : "Adsız bağlantı", lifetimeDays);
+    const link = await createLink(
+      label.length > 0 ? label : "Adsız bağlantı",
+      lifetimeDays,
+      note.length > 0 ? note : null,
+    );
     return Response.json({ link }, { status: 201 });
   } catch (error) {
     if (error instanceof StorageError) {

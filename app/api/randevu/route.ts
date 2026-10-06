@@ -1,4 +1,4 @@
-import { slotIsFree } from "@/lib/availability";
+import { OPEN_DAY, slotIsFree } from "@/lib/availability";
 import { nowInZone } from "@/lib/clock";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
 import { createAppointment, findLiveLink, readDoc, StorageError } from "@/lib/store";
@@ -37,7 +37,6 @@ export async function POST(request: Request) {
 
   const free = slotIsFree(
     {
-      availability: doc.availability,
       events: doc.events,
       appointments: doc.appointments,
       routines: doc.routines,
@@ -58,7 +57,7 @@ export async function POST(request: Request) {
   try {
     const appointment = await createAppointment({
       ...parsed.value,
-      duration: doc.availability.slotMinutes,
+      duration: OPEN_DAY.slotMinutes,
     });
     return Response.json(
       {

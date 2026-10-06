@@ -15,7 +15,6 @@ export async function GET(request: Request) {
   const backup = {
     events: doc.events,
     routines: doc.routines,
-    availability: doc.availability,
   };
   return new Response(`${JSON.stringify(backup, null, 2)}\n`, {
     headers: {

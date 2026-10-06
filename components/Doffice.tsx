@@ -15,7 +15,6 @@ import { subscribeToday, todaySnapshot } from "@/lib/client-clock";
 import type {
   Appointment,
   AppNotification,
-  Availability,
   DofficeEvent,
   EventDraft,
   Routine,
@@ -35,7 +34,6 @@ import { YearView } from "./YearView";
 type Props = {
   initialEvents: DofficeEvent[];
   initialRoutines: Routine[];
-  initialAvailability: Availability;
   initialNotifications: AppNotification[];
   initialAppointments: Appointment[];
   initialLinks: ShareLink[];
@@ -53,7 +51,6 @@ type WriteCall = {
 export function Doffice({
   initialEvents,
   initialRoutines,
-  initialAvailability,
   initialNotifications,
   initialAppointments,
   initialLinks,
@@ -67,7 +64,6 @@ export function Doffice({
 
   const [events, setEvents] = useState(initialEvents);
   const [routines, setRoutines] = useState(initialRoutines);
-  const [availability, setAvailability] = useState(initialAvailability);
   const [links, setLinks] = useState(initialLinks);
   const [notifications, setNotifications] =
     useState<AppNotification[]>(initialNotifications);
@@ -228,25 +224,14 @@ export function Doffice({
     [runWrite],
   );
 
-  const saveAvailability = useCallback(
-    (value: Availability) =>
-      runWrite({
-        path: "/api/ayarlar",
-        init: { method: "PUT", body: JSON.stringify(value) },
-        onDone: (payload) => {
-          const data = payload as { availability: Availability };
-          setAvailability(data.availability);
-          setToast({ tone: "ok", text: "Çalışma düzeni kaydedildi." });
-        },
-      }),
-    [runWrite],
-  );
-
   const createLink = useCallback(
-    (label: string, lifetimeDays: number) =>
+    (label: string, lifetimeDays: number, note: string) =>
       runWrite({
         path: "/api/baglanti",
-        init: { method: "POST", body: JSON.stringify({ label, lifetimeDays }) },
+        init: {
+          method: "POST",
+          body: JSON.stringify({ label, lifetimeDays, note }),
+        },
         onDone: (payload) => {
           const link = (payload as { link: ShareLink }).link;
           setLinks((current) => [link, ...current]);
@@ -631,14 +616,12 @@ export function Doffice({
 
       {settingsOpen ? (
         <SettingsDialog
-          availability={availability}
           links={links}
           routines={routines}
           total={events.length}
           pending={pending}
           onClose={() => setSettingsOpen(false)}
           onPickFile={() => fileRef.current?.click()}
-          onSave={saveAvailability}
           onCreateLink={createLink}
           onRevokeLink={revokeLink}
           onCreateRoutine={createRoutine}

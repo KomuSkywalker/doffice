@@ -1,14 +1,21 @@
 import { isValidKey, isValidTime, shiftKey, toClock, toMinutes, weekdayOfKey } from "./dates";
 import { occursOn } from "./occurrences";
 import { routineRanges } from "./routines";
-import type { Appointment, Availability, DofficeEvent, Routine } from "./types";
+import type { Appointment, DofficeEvent, Routine } from "./types";
+
+export const OPEN_DAY = {
+  days: [0, 1, 2, 3, 4, 5, 6],
+  start: "09:00",
+  end: "20:00",
+  slotMinutes: 60,
+  horizonDays: 60,
+};
 
 export type Slot = { time: string; endTime: string; free: boolean };
 
 export type DaySlots = { key: string; slots: Slot[]; free: number };
 
 export type Schedule = {
-  availability: Availability;
   events: DofficeEvent[];
   appointments: Appointment[];
   routines: Routine[];
@@ -52,11 +59,11 @@ export function slotsForDay(
 ): Slot[] {
   if (!isValidKey(key)) return [];
   if (key < nowKey) return [];
-  if (!schedule.availability.days.includes(weekdayOfKey(key))) return [];
+  if (!OPEN_DAY.days.includes(weekdayOfKey(key))) return [];
 
-  const dayStart = toMinutes(schedule.availability.start);
-  const dayEnd = toMinutes(schedule.availability.end);
-  const step = schedule.availability.slotMinutes;
+  const dayStart = toMinutes(OPEN_DAY.start);
+  const dayEnd = toMinutes(OPEN_DAY.end);
+  const step = OPEN_DAY.slotMinutes;
   if (step <= 0 || dayEnd <= dayStart) return [];
 
   const busy = busyRanges(schedule, key);
@@ -94,7 +101,7 @@ export function availableDays(
 ): DaySlots[] {
   const result: DaySlots[] = [];
   let cursor = fromKey;
-  for (let step = 0; step < schedule.availability.horizonDays; step += 1) {
+  for (let step = 0; step < OPEN_DAY.horizonDays; step += 1) {
     if (cursor.startsWith(monthPrefix)) {
       const slots = slotsForDay(schedule, cursor, nowKey, nowMinutes);
       if (slots.length > 0) {

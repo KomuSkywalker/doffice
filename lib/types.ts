@@ -1,12 +1,3 @@
-export type TagId =
-  | "genel"
-  | "is"
-  | "kisisel"
-  | "gorusme"
-  | "odeme"
-  | "onemli"
-  | "kutlama";
-
 export type Repeat = "yok" | "haftalik" | "aylik" | "yillik";
 
 export type DofficeEvent = {
@@ -16,7 +7,8 @@ export type DofficeEvent = {
   duration: number;
   title: string;
   note: string | null;
-  tag: TagId;
+  label: string | null;
+  color: string;
   repeat: Repeat;
   done: boolean;
   createdAt: string;
@@ -30,7 +22,8 @@ export type EventDraft = {
   duration?: number;
   title: string;
   note?: string | null;
-  tag?: TagId;
+  label?: string | null;
+  color?: string;
   repeat?: Repeat;
   done?: boolean;
 };
@@ -41,7 +34,8 @@ export type Routine = {
   days: number[];
   start: string;
   end: string;
-  tag: TagId;
+  label: string | null;
+  color: string;
   note: string | null;
   from: string | null;
   until: string | null;
@@ -55,7 +49,8 @@ export type RoutineDraft = {
   days: number[];
   start: string;
   end: string;
-  tag: TagId;
+  label: string | null;
+  color: string;
   note: string | null;
   from: string | null;
   until: string | null;
@@ -88,19 +83,11 @@ export type AppNotification = {
   createdAt: string;
 };
 
-export type Availability = {
-  days: number[];
-  start: string;
-  end: string;
-  slotMinutes: number;
-  horizonDays: number;
-  note: string;
-};
-
 export type ShareLink = {
   id: string;
   token: string;
   label: string;
+  note: string | null;
   createdAt: string;
   expiresAt: string | null;
   revokedAt: string | null;
@@ -111,7 +98,6 @@ export type StoreDoc = {
   routines: Routine[];
   appointments: Appointment[];
   notifications: AppNotification[];
-  availability: Availability;
   links: ShareLink[];
 };
 
@@ -128,15 +114,6 @@ export function linkIsLive(link: ShareLink, now = new Date()) {
   return true;
 }
 
-export const DEFAULT_AVAILABILITY: Availability = {
-  days: [0, 1, 2, 3, 4],
-  start: "09:00",
-  end: "18:00",
-  slotMinutes: 60,
-  horizonDays: 45,
-  note: "",
-};
-
 export const DEFAULT_DURATION = 60;
 
 export const DEFAULT_ROUTINE_START = "13:00";
@@ -145,17 +122,37 @@ export const DEFAULT_ROUTINE_END = "17:00";
 
 export const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 
-export const TAGS: { id: TagId; label: string; color: string }[] = [
-  { id: "genel", label: "Genel", color: "#eec14b" },
-  { id: "is", label: "İş", color: "#b9cfe8" },
-  { id: "kisisel", label: "Kişisel", color: "#c9ded0" },
-  { id: "gorusme", label: "Görüşme", color: "#e6b8ec" },
-  { id: "odeme", label: "Ödeme", color: "#f0c8a8" },
-  { id: "onemli", label: "Önemli", color: "#e8857a" },
-  { id: "kutlama", label: "Kutlama", color: "#f2b8cf" },
+export const DEFAULT_COLOR = "#eec14b";
+
+export const LABEL_LIMIT = 24;
+
+export const PALETTE: { color: string; name: string }[] = [
+  { color: "#eec14b", name: "Sarı" },
+  { color: "#f2b8cf", name: "Pembe" },
+  { color: "#b9cfe8", name: "Mavi" },
+  { color: "#c9ded0", name: "Yeşil" },
+  { color: "#e6b8ec", name: "Mor" },
+  { color: "#f0c8a8", name: "Turuncu" },
+  { color: "#e8857a", name: "Kırmızı" },
 ];
 
-export const TAG_IDS = TAGS.map((tag) => tag.id);
+export const LEGACY_TAGS: Record<string, { label: string; color: string }> = {
+  genel: { label: "Genel", color: "#eec14b" },
+  is: { label: "İş", color: "#b9cfe8" },
+  kisisel: { label: "Kişisel", color: "#c9ded0" },
+  gorusme: { label: "Görüşme", color: "#e6b8ec" },
+  odeme: { label: "Ödeme", color: "#f0c8a8" },
+  onemli: { label: "Önemli", color: "#e8857a" },
+  kutlama: { label: "Kutlama", color: "#f2b8cf" },
+};
+
+export function isHexColor(value: unknown): value is string {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
+export function normalizeColor(value: unknown) {
+  return isHexColor(value) ? value.toLowerCase() : DEFAULT_COLOR;
+}
 
 export const REPEATS: { id: Repeat; label: string }[] = [
   { id: "yok", label: "Tekrar yok" },
@@ -165,10 +162,6 @@ export const REPEATS: { id: Repeat; label: string }[] = [
 ];
 
 export const REPEAT_IDS = REPEATS.map((repeat) => repeat.id);
-
-export function tagOf(id: TagId) {
-  return TAGS.find((tag) => tag.id === id) ?? TAGS[0];
-}
 
 export function repeatLabel(id: Repeat) {
   return REPEATS.find((repeat) => repeat.id === id)?.label ?? "Tekrar yok";

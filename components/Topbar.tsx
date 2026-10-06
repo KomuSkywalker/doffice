@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 import { MONTH_NAMES, formatLong, formatShort } from "@/lib/dates";
 import type { DofficeEvent } from "@/lib/types";
 import type { ViewId } from "./Sidebar";
-import { Button, SquareButton, TagDot } from "./ui";
+import { Button, Dot, SquareButton } from "./ui";
 
 type Props = {
   view: ViewId;
@@ -109,7 +109,7 @@ export function Topbar({
                     onClick={() => onPickResult(event.date)}
                     className="anim-rise row-slide flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left hover:bg-tint"
                   >
-                    <TagDot tag={event.tag} size={10} />
+                    <Dot color={event.color} size={10} />
                     <span className="tabular w-16 shrink-0 text-xs font-bold text-muted">
                       {formatShort(event.date)}
                     </span>

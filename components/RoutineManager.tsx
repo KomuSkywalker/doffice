@@ -4,13 +4,13 @@ import { useState } from "react";
 import { WEEKDAY_NAMES, WEEKDAY_SHORT } from "@/lib/dates";
 import { daysLabel, spanLabel } from "@/lib/routines";
 import {
+  DEFAULT_COLOR,
   DEFAULT_ROUTINE_END,
   DEFAULT_ROUTINE_START,
   type Routine,
   type RoutineDraft,
-  type TagId,
 } from "@/lib/types";
-import { Button, Field, FieldGroup, TagDot, TagPicker, inputClass } from "./ui";
+import { Button, Dot, Field, FieldGroup, MarkerPicker, inputClass } from "./ui";
 
 type Props = {
   routines: Routine[];
@@ -38,7 +38,8 @@ export function RoutineManager({
   const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4]);
   const [start, setStart] = useState(DEFAULT_ROUTINE_START);
   const [end, setEnd] = useState(DEFAULT_ROUTINE_END);
-  const [tag, setTag] = useState<TagId>("genel");
+  const [label, setLabel] = useState("");
+  const [color, setColor] = useState(DEFAULT_COLOR);
   const [note, setNote] = useState("");
   const [from, setFrom] = useState("");
   const [until, setUntil] = useState("");
@@ -52,7 +53,8 @@ export function RoutineManager({
     setDays([0, 1, 2, 3, 4]);
     setStart(DEFAULT_ROUTINE_START);
     setEnd(DEFAULT_ROUTINE_END);
-    setTag("genel");
+    setLabel("");
+    setColor(DEFAULT_COLOR);
     setNote("");
     setFrom("");
     setUntil("");
@@ -66,7 +68,8 @@ export function RoutineManager({
     setDays(routine.days);
     setStart(routine.start);
     setEnd(routine.end);
-    setTag(routine.tag);
+    setLabel(routine.label ?? "");
+    setColor(routine.color);
     setNote(routine.note ?? "");
     setFrom(routine.from ?? "");
     setUntil(routine.until ?? "");
@@ -106,7 +109,8 @@ export function RoutineManager({
       days,
       start,
       end,
-      tag,
+      label: label.trim().length === 0 ? null : label.trim(),
+      color,
       note: note.trim().length === 0 ? null : note.trim(),
       from: from.length === 0 ? null : from,
       until: until.length === 0 ? null : until,
@@ -192,8 +196,13 @@ export function RoutineManager({
           </Field>
         </div>
 
-        <FieldGroup label="Etiket">
-          <TagPicker value={tag} onChange={setTag} />
+        <FieldGroup label="Etiket ve renk">
+          <MarkerPicker
+            label={label}
+            color={color}
+            onLabel={setLabel}
+            onColor={setColor}
+          />
         </FieldGroup>
 
         <Field label="Not" hint="boş olabilir">
@@ -264,7 +273,7 @@ export function RoutineManager({
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <span className="min-w-0">
                   <span className="flex items-center gap-2">
-                    <TagDot tag={routine.tag} size={10} />
+                    <Dot color={routine.color} size={10} />
                     <span className="text-sm font-bold">{routine.title}</span>
                     {routine.active ? null : (
                       <span className="nb-thin rounded-sm bg-tint px-1.5 py-0.5 text-[10px] font-bold uppercase">

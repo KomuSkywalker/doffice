@@ -2,7 +2,7 @@
 
 import { MONTH_NAMES, formatShort, makeKey, relativeLabel } from "@/lib/dates";
 import { indexRange, upcoming } from "@/lib/occurrences";
-import { TAGS, tagOf, type DofficeEvent } from "@/lib/types";
+import type { DofficeEvent } from "@/lib/types";
 import { Card } from "./ui";
 
 type Props = {
@@ -17,14 +17,19 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
   let total = 0;
   const perMonth = new Array(12).fill(0);
-  const perTag = new Map<string, number>();
+  const perLabel = new Map<string, { count: number; color: string }>();
 
   for (const [key, dayEvents] of index) {
     const month = Number(key.slice(5, 7)) - 1;
     perMonth[month] += dayEvents.length;
     total += dayEvents.length;
     for (const event of dayEvents) {
-      perTag.set(event.tag, (perTag.get(event.tag) ?? 0) + 1);
+      if (!event.label) continue;
+      const row = perLabel.get(event.label);
+      perLabel.set(event.label, {
+        count: (row?.count ?? 0) + 1,
+        color: row?.color ?? event.color,
+      });
     }
   }
 
@@ -33,8 +38,8 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
     { month: -1, count: 0 },
   );
 
-  const tagRows = TAGS.map((tag) => ({ tag, count: perTag.get(tag.id) ?? 0 }))
-    .filter((row) => row.count > 0)
+  const tagRows = [...perLabel.entries()]
+    .map(([label, row]) => ({ label, count: row.count, color: row.color }))
     .sort((left, right) => right.count - left.count)
     .slice(0, 6);
 
@@ -79,21 +84,21 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
         <div className="px-4 py-4">
           {tagRows.length === 0 ? (
             <p className="text-sm font-medium text-muted">
-              Gösterilecek etiket yok.
+              Henüz etiket verilmedi. Kayıt eklerken etiket adı yazabilirsin.
             </p>
           ) : (
             <ul className="space-y-2">
               {tagRows.map((row) => (
-                <li key={row.tag.id} className="flex items-center gap-2.5">
-                  <span className="w-20 shrink-0 text-xs font-bold">
-                    {row.tag.label}
+                <li key={row.label} className="flex items-center gap-2.5">
+                  <span className="w-20 shrink-0 truncate text-xs font-bold">
+                    {row.label}
                   </span>
                   <span className="nb-thin h-4 flex-1 overflow-hidden rounded-sm bg-cream">
                     <span
                       className="block h-full transition-[width] duration-500 ease-out"
                       style={{
                         width: `${Math.max(8, Math.round((row.count / maxTag) * 100))}%`,
-                        backgroundColor: tagOf(row.tag.id).color,
+                        backgroundColor: row.color,
                       }}
                     />
                   </span>

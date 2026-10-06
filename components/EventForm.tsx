@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { DofficeEvent, EventDraft, Repeat, TagId } from "@/lib/types";
-import { DEFAULT_DURATION, DURATIONS, durationLabel, REPEATS } from "@/lib/types";
-import { Button, Field, FieldGroup, TagPicker, inputClass } from "./ui";
+import type { DofficeEvent, EventDraft, Repeat } from "@/lib/types";
+import {
+  DEFAULT_COLOR,
+  DEFAULT_DURATION,
+  DURATIONS,
+  durationLabel,
+  REPEATS,
+} from "@/lib/types";
+import { Button, Field, FieldGroup, MarkerPicker, inputClass } from "./ui";
 
 type Props = {
   dateKey: string;
@@ -23,7 +29,8 @@ export function EventForm({
   const [title, setTitle] = useState(editing?.title ?? "");
   const [time, setTime] = useState(editing?.time ?? "");
   const [duration, setDuration] = useState(editing?.duration ?? DEFAULT_DURATION);
-  const [tag, setTag] = useState<TagId>(editing?.tag ?? "genel");
+  const [label, setLabel] = useState(editing?.label ?? "");
+  const [color, setColor] = useState(editing?.color ?? DEFAULT_COLOR);
   const [repeat, setRepeat] = useState<Repeat>(editing?.repeat ?? "yok");
   const [note, setNote] = useState(editing?.note ?? "");
   const [date, setDate] = useState(editing?.date ?? dateKey);
@@ -46,7 +53,8 @@ export function EventForm({
       time: time.length > 0 ? time : null,
       duration,
       note: note.trim().length > 0 ? note.trim() : null,
-      tag,
+      label: label.trim().length > 0 ? label.trim() : null,
+      color,
       repeat,
     };
     const done = await onSubmit(draft);
@@ -146,8 +154,13 @@ export function EventForm({
         )}
       </div>
 
-      <FieldGroup label="Etiket">
-        <TagPicker value={tag} onChange={setTag} />
+      <FieldGroup label="Etiket ve renk">
+        <MarkerPicker
+          label={label}
+          color={color}
+          onLabel={setLabel}
+          onColor={setColor}
+        />
       </FieldGroup>
 
       <Field label="Not" hint="boş olabilir">

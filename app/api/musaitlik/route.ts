@@ -1,4 +1,4 @@
-import { availableDays } from "@/lib/availability";
+import { availableDays, OPEN_DAY } from "@/lib/availability";
 import { nowInZone } from "@/lib/clock";
 import { makeKey, parseKey } from "@/lib/dates";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
@@ -34,7 +34,6 @@ export async function GET(request: Request) {
 
   const days = availableDays(
     {
-      availability: doc.availability,
       events: doc.events,
       appointments: doc.appointments,
       routines: doc.routines,
@@ -49,12 +48,10 @@ export async function GET(request: Request) {
     month,
     today: nowKey,
     availability: {
-      days: doc.availability.days,
-      start: doc.availability.start,
-      end: doc.availability.end,
-      slotMinutes: doc.availability.slotMinutes,
-      horizonDays: doc.availability.horizonDays,
-      note: doc.availability.note,
+      start: OPEN_DAY.start,
+      end: OPEN_DAY.end,
+      slotMinutes: OPEN_DAY.slotMinutes,
+      note: link.note ?? "",
     },
     days,
   });

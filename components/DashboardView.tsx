@@ -13,7 +13,7 @@ import {
 import { indexRange, upcoming } from "@/lib/occurrences";
 import { dayItems, itemSpan } from "@/lib/routines";
 import type { DofficeEvent, Routine } from "@/lib/types";
-import { Card, TagChip, TagDot } from "./ui";
+import { Card, Chip, Dot } from "./ui";
 
 type Props = {
   events: DofficeEvent[];
@@ -142,7 +142,7 @@ export function DashboardView({
                       />
                     ) : (
                       <span className="mt-1 w-4 shrink-0">
-                        <TagDot tag={event.tag} size={10} />
+                        <Dot color={event.color} size={10} />
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ export function DashboardView({
                         </span>
                       ) : null}
                     </span>
-                    <TagChip tag={event.tag} />
+                    <Chip label={event.label} color={event.color} />
                   </li>
                 ))}
               </ul>
@@ -232,7 +232,7 @@ export function DashboardView({
                             onClick={() => onSelect(day.key)}
                             className="row-slide nb-thin flex w-full items-center gap-2 rounded-sm bg-cream px-2.5 py-1.5 text-left"
                           >
-                            <TagDot tag={event.tag} size={10} />
+                            <Dot color={event.color} size={10} />
                             <span className="min-w-0 flex-1 truncate text-[13px] font-bold">
                               {event.title}
                             </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
-import { TAGS, tagOf, type TagId } from "@/lib/types";
+import { LABEL_LIMIT, PALETTE } from "@/lib/types";
 
 type Tone = "primary" | "plain" | "ink" | "danger" | "quiet";
 
@@ -49,58 +49,82 @@ export function SquareButton({
   );
 }
 
-export function TagDot({ tag, size = 12 }: { tag: TagId; size?: number }) {
+export function Dot({ color, size = 12 }: { color: string; size?: number }) {
   return (
     <span
       aria-hidden
       className="inline-block shrink-0 rounded-full border-2 border-ink"
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: tagOf(tag).color,
-      }}
+      style={{ width: size, height: size, backgroundColor: color }}
     />
   );
 }
 
-export function TagChip({ tag }: { tag: TagId }) {
-  const found = tagOf(tag);
+export function Chip({ label, color }: { label: string | null; color: string }) {
+  if (!label) return null;
   return (
     <span
       className="nb-thin inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink"
-      style={{ backgroundColor: found.color }}
+      style={{ backgroundColor: color }}
     >
-      {found.label}
+      {label}
     </span>
   );
 }
 
-export function TagPicker({
-  value,
-  onChange,
+export function MarkerPicker({
+  label,
+  color,
+  onLabel,
+  onColor,
 }: {
-  value: TagId;
-  onChange: (tag: TagId) => void;
+  label: string;
+  color: string;
+  onLabel: (value: string) => void;
+  onColor: (value: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {TAGS.map((tag) => {
-        const active = tag.id === value;
-        return (
-          <button
-            key={tag.id}
-            type="button"
-            onClick={() => onChange(tag.id)}
-            aria-pressed={active}
-            className={`nb-thin rounded-sm px-2.5 py-1 text-xs font-bold text-ink transition-transform ${
-              active ? "shadow-nb-xs" : "opacity-55 hover:opacity-100"
-            }`}
-            style={{ backgroundColor: tag.color }}
-          >
-            {tag.label}
-          </button>
-        );
-      })}
+    <div className="space-y-2">
+      <input
+        className={inputClass}
+        value={label}
+        maxLength={LABEL_LIMIT}
+        placeholder="Etiket adı, boş olabilir"
+        onChange={(event) => onLabel(event.target.value)}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        {PALETTE.map((option) => {
+          const active = option.color === color.toLowerCase();
+          return (
+            <button
+              key={option.color}
+              type="button"
+              title={option.name}
+              aria-label={option.name}
+              aria-pressed={active}
+              onClick={() => onColor(option.color)}
+              className={`chip-pop h-7 w-7 rounded-sm border-2 border-ink ${
+                active ? "shadow-nb-xs" : "opacity-55 hover:opacity-100"
+              }`}
+              style={{ backgroundColor: option.color }}
+            />
+          );
+        })}
+        <label className="nb-thin chip-pop flex cursor-pointer items-center gap-1.5 rounded-sm bg-card px-2 py-1 text-[11px] font-bold">
+          <span
+            aria-hidden
+            className="h-4 w-4 rounded-sm border-2 border-ink"
+            style={{ backgroundColor: color }}
+          />
+          Özel renk
+          <input
+            type="color"
+            value={color}
+            aria-label="Özel renk"
+            className="h-0 w-0 opacity-0"
+            onChange={(event) => onColor(event.target.value)}
+          />
+        </label>
+      </div>
     </div>
   );
 }

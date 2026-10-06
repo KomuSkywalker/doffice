@@ -19,7 +19,6 @@ type Payload = {
   month: string;
   today: string;
   availability: {
-    days: number[];
     start: string;
     end: string;
     slotMinutes: number;
@@ -204,8 +203,8 @@ export function BookingPage({
 
         <div className="px-4 py-4">
           <p className="mb-3 text-sm font-medium text-ink-soft">
-            Çalışma saatleri {data.availability.start} ile {data.availability.end}{" "}
-            arası, her görüşme {durationLabel(data.availability.slotMinutes)}.
+            Gün içinde {data.availability.start} ile {data.availability.end} arası
+            bakılıyor, her görüşme {durationLabel(data.availability.slotMinutes)}.
           </p>
 
           {loading ? (

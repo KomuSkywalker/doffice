@@ -1,16 +1,15 @@
 import { isValidKey, isValidTime } from "./dates";
 import {
-  DEFAULT_AVAILABILITY,
   DURATIONS,
+  LABEL_LIMIT,
   REPEAT_IDS,
-  TAG_IDS,
-  type Availability,
+  isHexColor,
+  normalizeColor,
   type DofficeEvent,
   type EventDraft,
   type Repeat,
   type Routine,
   type RoutineDraft,
-  type TagId,
 } from "./types";
 
 const TITLE_LIMIT = 160;
@@ -79,11 +78,19 @@ export function parseDraft(input: unknown, partial: boolean): ValidationResult {
     draft.duration = duration;
   }
 
-  if (body.tag !== undefined) {
-    if (!TAG_IDS.includes(body.tag as TagId)) {
-      return { ok: false, error: "Bilinmeyen etiket." };
+  if (body.label !== undefined) {
+    const label = body.label === null ? "" : asTrimmed(body.label);
+    if (label.length > LABEL_LIMIT) {
+      return { ok: false, error: `Etiket en fazla ${LABEL_LIMIT} karakter.` };
     }
-    draft.tag = body.tag as TagId;
+    draft.label = label.length === 0 ? null : label;
+  }
+
+  if (body.color !== undefined) {
+    if (!isHexColor(body.color)) {
+      return { ok: false, error: "Renk #rrggbb biçiminde olmalı." };
+    }
+    draft.color = normalizeColor(body.color);
   }
 
   if (body.repeat !== undefined) {
@@ -110,7 +117,6 @@ export function isEventShape(value: unknown): value is DofficeEvent {
     typeof row.id === "string" &&
     isValidKey(row.date) &&
     typeof row.title === "string" &&
-    TAG_IDS.includes(row.tag as TagId) &&
     REPEAT_IDS.includes(row.repeat as Repeat)
   );
 }
@@ -171,59 +177,6 @@ export function parseAppointment(input: unknown): AppointmentResult {
   };
 }
 
-export type AvailabilityResult =
-  | { ok: true; value: Availability }
-  | { ok: false; error: string };
-
-export function parseAvailability(input: unknown): AvailabilityResult {
-  if (typeof input !== "object" || input === null) {
-    return { ok: false, error: "Geçersiz istek gövdesi." };
-  }
-  const body = input as Record<string, unknown>;
-
-  const days = Array.isArray(body.days)
-    ? body.days.map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
-    : null;
-  if (!days) {
-    return { ok: false, error: "Çalışma günleri geçersiz." };
-  }
-
-  if (!isValidTime(body.start) || !isValidTime(body.end)) {
-    return { ok: false, error: "Çalışma saatleri SS:DD biçiminde olmalı." };
-  }
-  if (String(body.start) >= String(body.end)) {
-    return { ok: false, error: "Bitiş saati başlangıçtan sonra olmalı." };
-  }
-
-  const slotMinutes = Number(body.slotMinutes);
-  if (!DURATIONS.includes(slotMinutes)) {
-    return { ok: false, error: "Randevu süresi geçersiz." };
-  }
-
-  const horizonDays = Number(body.horizonDays);
-  if (!Number.isInteger(horizonDays) || horizonDays < 7 || horizonDays > 180) {
-    return { ok: false, error: "Görünür gün sayısı 7 ile 180 arasında olmalı." };
-  }
-
-  const note = asTrimmed(body.note);
-  if (note.length > 300) {
-    return { ok: false, error: "Not en fazla 300 karakter." };
-  }
-
-  return {
-    ok: true,
-    value: {
-      ...DEFAULT_AVAILABILITY,
-      days: [...new Set(days)].sort((a, b) => a - b),
-      start: body.start,
-      end: body.end,
-      slotMinutes,
-      horizonDays,
-      note,
-    },
-  };
-}
-
 export function isRoutineShape(value: unknown): value is Routine {
   if (typeof value !== "object" || value === null) return false;
   const row = value as Record<string, unknown>;
@@ -232,8 +185,7 @@ export function isRoutineShape(value: unknown): value is Routine {
     typeof row.title === "string" &&
     Array.isArray(row.days) &&
     isValidTime(row.start) &&
-    isValidTime(row.end) &&
-    TAG_IDS.includes(row.tag as TagId)
+    isValidTime(row.end)
   );
 }
 
@@ -299,12 +251,20 @@ export function parseRoutine(input: unknown, partial: boolean): RoutineResult {
     return { ok: false, error: "Bitiş saati başlangıçtan sonra olmalı." };
   }
 
-  if (body.tag !== undefined || !partial) {
-    const tag = body.tag ?? "genel";
-    if (!TAG_IDS.includes(tag as TagId)) {
-      return { ok: false, error: "Bilinmeyen etiket." };
+  if (body.label !== undefined || !partial) {
+    const label = body.label === null ? "" : asTrimmed(body.label);
+    if (label.length > LABEL_LIMIT) {
+      return { ok: false, error: `Etiket en fazla ${LABEL_LIMIT} karakter.` };
     }
-    draft.tag = tag as TagId;
+    draft.label = label.length === 0 ? null : label;
+  }
+
+  if (body.color !== undefined || !partial) {
+    const color = body.color ?? undefined;
+    if (color !== undefined && !isHexColor(color)) {
+      return { ok: false, error: "Renk #rrggbb biçiminde olmalı." };
+    }
+    draft.color = normalizeColor(color);
   }
 
   if (body.note !== undefined || !partial) {

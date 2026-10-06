@@ -2,14 +2,15 @@ import { promises as fs } from "node:fs";
 import { randomBytes, randomUUID } from "node:crypto";
 import path from "node:path";
 import {
-  DEFAULT_AVAILABILITY,
+  DEFAULT_COLOR,
   DEFAULT_DURATION,
   DEFAULT_ROUTINE_END,
   DEFAULT_ROUTINE_START,
+  LEGACY_TAGS,
   linkIsLive,
+  normalizeColor,
   type Appointment,
   type AppNotification,
-  type Availability,
   type DofficeEvent,
   type EventDraft,
   type Routine,
@@ -42,7 +43,6 @@ function emptyDoc(): StoreDoc {
     routines: [],
     appointments: [],
     notifications: [],
-    availability: { ...DEFAULT_AVAILABILITY },
     links: [],
   };
 }
@@ -51,9 +51,21 @@ function serialize(doc: StoreDoc) {
   return `${JSON.stringify(doc, null, 2)}\n`;
 }
 
+function markerOf(row: Record<string, unknown>) {
+  const legacy =
+    typeof row.tag === "string" ? LEGACY_TAGS[row.tag] : undefined;
+  const label =
+    typeof row.label === "string" && row.label.trim().length > 0
+      ? row.label.trim()
+      : (legacy?.label ?? null);
+  const color = row.color === undefined ? (legacy?.color ?? DEFAULT_COLOR) : row.color;
+  return { label, color: normalizeColor(color) };
+}
+
 function normalizeEvent(row: Record<string, unknown>): DofficeEvent {
   const now = new Date().toISOString();
   const duration = Number(row.duration);
+  const marker = markerOf(row);
   return {
     id: String(row.id),
     date: String(row.date),
@@ -62,7 +74,8 @@ function normalizeEvent(row: Record<string, unknown>): DofficeEvent {
       Number.isFinite(duration) && duration > 0 ? duration : DEFAULT_DURATION,
     title: String(row.title),
     note: typeof row.note === "string" ? row.note : null,
-    tag: row.tag as DofficeEvent["tag"],
+    label: marker.label,
+    color: marker.color,
     repeat: row.repeat as DofficeEvent["repeat"],
     done: row.done === true,
     createdAt: typeof row.createdAt === "string" ? row.createdAt : now,
@@ -72,6 +85,7 @@ function normalizeEvent(row: Record<string, unknown>): DofficeEvent {
 
 function normalizeRoutine(row: Record<string, unknown>): Routine {
   const now = new Date().toISOString();
+  const marker = markerOf(row);
   const days = Array.isArray(row.days)
     ? row.days
         .map(Number)
@@ -83,7 +97,8 @@ function normalizeRoutine(row: Record<string, unknown>): Routine {
     days: [...new Set(days)].sort((a, b) => a - b),
     start: typeof row.start === "string" ? row.start : DEFAULT_ROUTINE_START,
     end: typeof row.end === "string" ? row.end : DEFAULT_ROUTINE_END,
-    tag: (row.tag as Routine["tag"]) ?? "genel",
+    label: marker.label,
+    color: marker.color,
     note: typeof row.note === "string" ? row.note : null,
     from: typeof row.from === "string" ? row.from : null,
     until: typeof row.until === "string" ? row.until : null,
@@ -121,13 +136,10 @@ function normalizeDoc(parsed: unknown): StoreDoc {
     doc.notifications = row.notifications as AppNotification[];
   }
   if (Array.isArray(row.links)) {
-    doc.links = row.links as ShareLink[];
-  }
-  if (typeof row.availability === "object" && row.availability !== null) {
-    doc.availability = {
-      ...DEFAULT_AVAILABILITY,
-      ...(row.availability as Partial<Availability>),
-    };
+    doc.links = (row.links as ShareLink[]).map((link) => ({
+      ...link,
+      note: typeof link.note === "string" ? link.note : null,
+    }));
   }
   return doc;
 }
@@ -235,7 +247,8 @@ export function createEvent(draft: EventDraft) {
       duration: draft.duration ?? DEFAULT_DURATION,
       title: draft.title,
       note: draft.note ?? null,
-      tag: draft.tag ?? "genel",
+      label: draft.label ?? null,
+      color: normalizeColor(draft.color),
       repeat: draft.repeat ?? "yok",
       done: draft.done ?? false,
       createdAt: now,
@@ -297,7 +310,8 @@ export function createRoutine(draft: RoutineDraft) {
       days: draft.days,
       start: draft.start,
       end: draft.end,
-      tag: draft.tag,
+      label: draft.label,
+      color: normalizeColor(draft.color),
       note: draft.note,
       from: draft.from,
       until: draft.until,
@@ -338,14 +352,6 @@ export function deleteRoutine(id: string) {
     doc.routines = doc.routines.filter((routine) => routine.id !== id);
     await writeDoc(doc);
     return true;
-  });
-}
-
-export function saveAvailability(availability: Availability) {
-  return mutate(async (doc) => {
-    doc.availability = availability;
-    await writeDoc(doc);
-    return availability;
   });
 }
 
@@ -403,7 +409,8 @@ export function decideAppointment(id: string, approve: boolean) {
         duration: current.duration,
         title: `Randevu: ${current.name}`,
         note: [current.contact, current.note].filter(Boolean).join("\n"),
-        tag: "gorusme",
+        label: "Randevu",
+        color: DEFAULT_COLOR,
         repeat: "yok",
         done: false,
         createdAt: now,
@@ -443,13 +450,14 @@ export function markNotificationsRead() {
   });
 }
 
-export function createLink(label: string, lifetimeDays: number) {
+export function createLink(label: string, lifetimeDays: number, note: string | null) {
   return mutate(async (doc) => {
     const now = new Date();
     const link: ShareLink = {
       id: randomUUID(),
       token: randomBytes(9).toString("base64url"),
       label,
+      note,
       createdAt: now.toISOString(),
       expiresAt:
         lifetimeDays > 0

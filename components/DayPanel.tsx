@@ -5,7 +5,7 @@ import { formatLong, relativeLabel } from "@/lib/dates";
 import { itemSpan } from "@/lib/routines";
 import { repeatLabel, type DofficeEvent, type EventDraft } from "@/lib/types";
 import { EventForm } from "./EventForm";
-import { Button, TagChip } from "./ui";
+import { Button, Chip } from "./ui";
 
 type Props = {
   dateKey: string;
@@ -171,7 +171,7 @@ export function DayPanel({
                           </p>
                         ) : null}
                         <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                          <TagChip tag={event.tag} />
+                          <Chip label={event.label} color={event.color} />
                           {routine ? (
                             <span className="nb-thin rounded-sm bg-cream px-2 py-0.5 text-[11px] font-bold">
                               Her hafta tekrar eden rutin

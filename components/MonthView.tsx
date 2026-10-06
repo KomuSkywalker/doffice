@@ -2,7 +2,6 @@
 
 import { MONTH_NAMES, WEEKDAY_NAMES, WEEKDAY_SHORT, monthCells } from "@/lib/dates";
 import type { DofficeEvent } from "@/lib/types";
-import { tagOf } from "@/lib/types";
 
 type Props = {
   year: number;
@@ -87,7 +86,7 @@ export function MonthView({
                   <span
                     key={event.id}
                     className="nb-thin flex items-center gap-1 overflow-hidden rounded-sm px-1.5 py-[3px] text-[11px] font-bold leading-tight text-ink"
-                    style={{ backgroundColor: tagOf(event.tag).color }}
+                    style={{ backgroundColor: event.color }}
                   >
                     {event.time ? (
                       <span className="tabular shrink-0">{event.time}</span>
@@ -110,7 +109,7 @@ export function MonthView({
                     key={event.id}
                     aria-hidden
                     className="h-2 w-2 rounded-full border border-ink"
-                    style={{ backgroundColor: tagOf(event.tag).color }}
+                    style={{ backgroundColor: event.color }}
                   />
                 ))}
               </span>

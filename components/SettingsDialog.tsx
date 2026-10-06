@@ -1,39 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WEEKDAY_NAMES, WEEKDAY_SHORT } from "@/lib/dates";
+import { OPEN_DAY } from "@/lib/availability";
 import {
-  DURATIONS,
   LINK_LIFETIMES,
   durationLabel,
   linkIsLive,
-  type Availability,
   type Routine,
   type RoutineDraft,
   type ShareLink,
 } from "@/lib/types";
 import { RoutineManager } from "./RoutineManager";
-import { Button, Field, FieldGroup, inputClass } from "./ui";
+import { Button, Field, inputClass } from "./ui";
 
-type TabId = "baglanti" | "rutin" | "duzen" | "sistem";
+type TabId = "baglanti" | "rutin" | "sistem";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "baglanti", label: "Bağlantılar" },
   { id: "rutin", label: "Rutinler" },
-  { id: "duzen", label: "Çalışma düzeni" },
   { id: "sistem", label: "Sistem" },
 ];
 
 type Props = {
-  availability: Availability;
   links: ShareLink[];
   routines: Routine[];
   total: number;
   pending: boolean;
   onClose: () => void;
   onPickFile: () => void;
-  onSave: (value: Availability) => Promise<boolean>;
-  onCreateLink: (label: string, lifetimeDays: number) => Promise<boolean>;
+  onCreateLink: (
+    label: string,
+    lifetimeDays: number,
+    note: string,
+  ) => Promise<boolean>;
   onRevokeLink: (id: string) => void;
   onCreateRoutine: (draft: RoutineDraft) => Promise<boolean>;
   onUpdateRoutine: (id: string, draft: Partial<RoutineDraft>) => Promise<boolean>;
@@ -42,14 +41,12 @@ type Props = {
 };
 
 export function SettingsDialog({
-  availability,
   links,
   routines,
   total,
   pending,
   onClose,
   onPickFile,
-  onSave,
   onCreateLink,
   onRevokeLink,
   onCreateRoutine,
@@ -58,16 +55,11 @@ export function SettingsDialog({
   onLogout,
 }: Props) {
   const [tab, setTab] = useState<TabId>("baglanti");
-  const [days, setDays] = useState<number[]>(availability.days);
-  const [start, setStart] = useState(availability.start);
-  const [end, setEnd] = useState(availability.end);
-  const [slotMinutes, setSlotMinutes] = useState(availability.slotMinutes);
-  const [horizonDays, setHorizonDays] = useState(availability.horizonDays);
-  const [note, setNote] = useState(availability.note);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [linkLabel, setLinkLabel] = useState("");
   const [linkLifetime, setLinkLifetime] = useState(0);
+  const [linkNote, setLinkNote] = useState("");
   const [showClosed, setShowClosed] = useState(false);
   const [origin] = useState(() =>
     typeof window === "undefined" ? "" : window.location.origin,
@@ -86,34 +78,6 @@ export function SettingsDialog({
     setError(null);
   };
 
-  const toggleDay = (day: number) => {
-    setDays((current) =>
-      current.includes(day)
-        ? current.filter((value) => value !== day)
-        : [...current, day].sort((a, b) => a - b),
-    );
-  };
-
-  const save = async () => {
-    if (days.length === 0) {
-      setError("En az bir çalışma günü seç.");
-      return;
-    }
-    if (start >= end) {
-      setError("Bitiş saati başlangıçtan sonra olmalı.");
-      return;
-    }
-    const ok = await onSave({
-      days,
-      start,
-      end,
-      slotMinutes,
-      horizonDays,
-      note,
-    });
-    setError(ok ? null : "Kaydedilemedi, tekrar dene.");
-  };
-
   const copyLink = async (link: ShareLink) => {
     try {
       await navigator.clipboard.writeText(`${origin}/musaitlik/${link.token}`);
@@ -125,9 +89,10 @@ export function SettingsDialog({
   };
 
   const addLink = async () => {
-    const ok = await onCreateLink(linkLabel.trim(), linkLifetime);
+    const ok = await onCreateLink(linkLabel.trim(), linkLifetime, linkNote.trim());
     if (ok) {
       setLinkLabel("");
+      setLinkNote("");
       setError(null);
     } else {
       setError("Bağlantı oluşturulamadı.");
@@ -195,9 +160,10 @@ export function SettingsDialog({
           {tab === "baglanti" ? (
             <div className="space-y-3">
               <p className="text-sm font-medium leading-relaxed text-ink-soft">
-                Paylaştığın kişi boş gün ve saatlerini görür, kayıtlarının
-                içeriğini göremez. İşin bitince kapatırsın, o adres bir daha
-                açılmaz.
+                Bağlantı takvimini okur: {OPEN_DAY.start} ile {OPEN_DAY.end} arası{" "}
+                {durationLabel(OPEN_DAY.slotMinutes)} dilimler üretir,
+                kayıtlarının ve rutinlerinin kapattığı saatleri dolu gösterir.
+                Karşı taraf kayıt içeriğini görmez.
               </p>
 
               <div className="nb-thin space-y-3 rounded-md bg-cream px-3 py-3">
@@ -227,6 +193,15 @@ export function SettingsDialog({
                     </select>
                   </Field>
                 </div>
+                <Field label="Bağlantıdaki not" hint="boş olabilir">
+                  <input
+                    className={inputClass}
+                    value={linkNote}
+                    maxLength={300}
+                    placeholder="Görüşme nerede yapılacak, ne getirilmeli"
+                    onChange={(event) => setLinkNote(event.target.value)}
+                  />
+                </Field>
                 <Button
                   tone="primary"
                   disabled={pending}
@@ -337,106 +312,6 @@ export function SettingsDialog({
               onUpdate={onUpdateRoutine}
               onDelete={onDeleteRoutine}
             />
-          ) : null}
-
-          {tab === "duzen" ? (
-            <div className="space-y-3">
-              <p className="text-sm font-medium leading-relaxed text-ink-soft">
-                Müsaitlik bağlantısı bu düzene göre saat üretir. Rutinler ve
-                kayıtlar bu saatlerin üstünden düşülür.
-              </p>
-
-              <FieldGroup label="Günler">
-                <div className="flex flex-wrap gap-2">
-                  {WEEKDAY_NAMES.map((label, day) => {
-                    const active = days.includes(day);
-                    return (
-                      <button
-                        key={label}
-                        title={label}
-                        type="button"
-                        onClick={() => toggleDay(day)}
-                        aria-pressed={active}
-                        className={`chip-pop nb-thin rounded-sm px-2.5 py-1 text-xs font-bold ${
-                          active ? "bg-gold" : "bg-card hover:bg-cream"
-                        }`}
-                      >
-                        {WEEKDAY_SHORT[day]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </FieldGroup>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Başlangıç">
-                  <input
-                    type="time"
-                    className={inputClass}
-                    value={start}
-                    onChange={(event) => setStart(event.target.value)}
-                  />
-                </Field>
-                <Field label="Bitiş">
-                  <input
-                    type="time"
-                    className={inputClass}
-                    value={end}
-                    onChange={(event) => setEnd(event.target.value)}
-                  />
-                </Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Randevu süresi">
-                  <select
-                    className={inputClass}
-                    value={slotMinutes}
-                    onChange={(event) =>
-                      setSlotMinutes(Number(event.target.value))
-                    }
-                  >
-                    {DURATIONS.map((value) => (
-                      <option key={value} value={value}>
-                        {durationLabel(value)}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Kaç gün ileri" hint="7 ile 180">
-                  <input
-                    type="number"
-                    min={7}
-                    max={180}
-                    className={inputClass}
-                    value={horizonDays}
-                    onChange={(event) =>
-                      setHorizonDays(Number(event.target.value))
-                    }
-                  />
-                </Field>
-              </div>
-
-              <Field label="Bağlantıdaki not" hint="boş olabilir">
-                <textarea
-                  className={`${inputClass} min-h-[60px] resize-y`}
-                  maxLength={300}
-                  value={note}
-                  placeholder="Görüşme nerede yapılacak, ne getirilmeli"
-                  onChange={(event) => setNote(event.target.value)}
-                />
-              </Field>
-
-              {error ? (
-                <p className="nb-thin rounded-sm bg-coral px-2.5 py-1.5 text-xs font-bold">
-                  {error}
-                </p>
-              ) : null}
-
-              <Button tone="primary" disabled={pending} onClick={() => void save()}>
-                Çalışma düzenini kaydet
-              </Button>
-            </div>
           ) : null}
 
           {tab === "sistem" ? (

@@ -50,8 +50,9 @@ altta ayarlar durur.
   özeti, etiket dağılımı ve sıradaki kayıtlar.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
-- **Ayarlar**: müsaitlik bağlantıları, günlük rutinler, çalışma düzeni,
-  yedek işlemleri ve çıkış. Rayın en altındaki dişli açar.
+- **Ayarlar**: üç sekme. Bağlantılar (müsaitlik bağlantısı üretme),
+  Rutinler (haftalık sabit bloklar), Sistem (yedek ve çıkış). Rayın en
+  altındaki dişli açar.
 
 Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
 içinde vektör olarak durur, aynı çizim `app/icon.svg` ile sekme
@@ -63,9 +64,9 @@ ile paylaşımlarda kullanılır.
 Her hafta tekrar eden sabit işler (ders, antrenman, sabit toplantı)
 Ayarlar penceresindeki **Günlük rutinler** bölümünde tanımlanır. Rutine
 ad verilir, günler seçilir (tek tek ya da Her gün, Hafta içi, Hafta sonu
-kısayollarıyla), başlangıç ve bitiş saati girilir. İstersen etiket, not
-ve bir tarih aralığı da verebilirsin, böylece rutin yalnızca o dönemde
-işler.
+kısayollarıyla), başlangıç ve bitiş saati girilir. İstersen etiket adı,
+renk, not ve bir tarih aralığı da verebilirsin, böylece rutin yalnızca o
+dönemde işler.
 
 Rutin kayıt değildir, kopyası çıkarılmaz. Seçili günlerde Ajanda
 hücresinde ve gün panelinde görünür, müsaitlik bağlantısında o saatleri
@@ -78,19 +79,24 @@ yılın bütün günlerini doldurup işareti anlamsız kılardı.
 ## Müsaitlik ve randevu
 
 Müsaitlik bağlantısını panelden sen oluşturursun. Ayarlar penceresindeki
-bölümde etiket (kime gönderildiği) ve geçerlilik süresi seçip bağlantı
-üretirsin, listeden kopyalar, işin bitince kapatırsın. Kapatılan veya
-süresi dolan bağlantı bir daha açılmaz.
+Bağlantılar sekmesinde etiket (kime gönderildiği), geçerlilik süresi ve
+o bağlantıya özel bir not girip bağlantı üretirsin, listeden kopyalar,
+işin bitince kapatırsın. Kapatılan veya süresi dolan bağlantı bir daha
+açılmaz. Kapalı bağlantılar listede yer kaplamaz, sayaçlı tuşun arkasında
+durur.
 
 Her bağlantının adresi `/musaitlik/<token>` biçimindedir ve token rastgele
 üretilir. Tokensiz `/musaitlik` adresi hiçbir şey göstermez, yani adresi
 tahmin eden biri takvimine bakamaz. Ziyaretçi o aydaki boş gün ve
 saatleri görür, kayıtların içeriğini görmez.
 
-Boş saat hesabı şöyle çalışır: çalışma günleri ve saatleri ayarlardan
-gelir, aralık randevu süresine bölünür, üstüne denk gelen kayıtlar,
-rutinler ve bekleyen randevular düşülür. Bir kaydın kapattığı süre, kayıt
-formundaki süre alanıdır, rutinde ise başlangıç ile bitiş arasıdır.
+Boş saat hesabının ayarı yoktur, doğrudan takvimden çıkar. Gün penceresi
+her gün için `09:00` ile `20:00` arası, dilim bir saattir
+(`lib/availability.ts` içindeki `OPEN_DAY`). Bu pencereden kayıtların,
+rutinlerin ve bekleyen randevuların kapattığı saatler düşülür. Bir kaydın
+kapattığı süre, kayıt formundaki süre alanıdır, rutinde ise başlangıç ile
+bitiş arasıdır. Kapalı kalmasını istediğin saatler için rutin tanımla,
+mesela hafta sonunu ya da akşam saatlerini kapatan bir rutin.
 
 Dolu saatler ziyaretçiye gizlenmez, üstü çizili ve seçilemez biçimde
 görünür. Böylece karşı taraf o günün hangi saatinin boş hangisinin dolu
@@ -109,7 +115,8 @@ yeniden doğrulanır.
 | Saat | Boş bırakılabilir, SS:DD |
 | Tarih | Düzenlerken değiştirilir, kayıt başka güne taşınır |
 | Tekrar | Tekrar yok, her hafta, her ay, her yıl |
-| Etiket | Genel, İş, Kişisel, Görüşme, Ödeme, Önemli, Kutlama |
+| Etiket | Serbest metin, en fazla 24 karakter, boş bırakılabilir |
+| Renk | Yedi hazır renk ya da renk seçiciyle istediğin ton |
 | Not | Boş bırakılabilir, en fazla 2000 karakter |
 
 Aylık tekrarda ayın 31'i gibi günler kısa aylarda ayın son gününe kayar.
@@ -134,8 +141,7 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 - Kayıtlar `data/events.json` içinde tutulur ve `.gitignore` ile repo
   dışında bırakılır, kişisel veri GitHub'a gitmez.
 - `data/events.sample.json` repoda durur, ilk kurulumda örnek içerik verir.
-- Ayarlardaki **Yedek al** kayıtları, rutinleri ve çalışma düzenini JSON
-  indirir.
+- Ayarlardaki **Yedek al** kayıtları ve rutinleri JSON indirir.
 - **Yedek yükle** seçilen JSON ile mevcut kayıtların yerine geçer,
   geçersiz satırlar atlanır. Dosyada rutin varsa onlar da geri yüklenir.
 
