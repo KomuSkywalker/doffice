@@ -44,6 +44,7 @@ export function RoutineManager({
   const [until, setUntil] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [showRange, setShowRange] = useState(false);
 
   const reset = () => {
     setEditingId(null);
@@ -55,6 +56,7 @@ export function RoutineManager({
     setNote("");
     setFrom("");
     setUntil("");
+    setShowRange(false);
     setError(null);
   };
 
@@ -68,6 +70,7 @@ export function RoutineManager({
     setNote(routine.note ?? "");
     setFrom(routine.from ?? "");
     setUntil(routine.until ?? "");
+    setShowRange(Boolean(routine.from || routine.until));
     setError(null);
     setConfirming(null);
   };
@@ -121,8 +124,8 @@ export function RoutineManager({
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium leading-relaxed text-ink-soft">
-        Her hafta tekrar eden sabit işlerini buraya yaz. Seçtiğin günlerde
-        takvimde görünür ve müsaitlik bağlantısında o saatler dolu sayılır.
+        Her hafta tekrar eden sabit işlerin. Seçtiğin günlerde takvimde
+        görünür, müsaitlik bağlantısında o saatleri kapatır.
       </p>
 
       <div className="nb-thin space-y-3 rounded-md bg-cream px-3 py-3">
@@ -203,24 +206,34 @@ export function RoutineManager({
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="İlk gün" hint="boş olabilir">
-            <input
-              type="date"
-              className={inputClass}
-              value={from}
-              onChange={(event) => setFrom(event.target.value)}
-            />
-          </Field>
-          <Field label="Son gün" hint="boş olabilir">
-            <input
-              type="date"
-              className={inputClass}
-              value={until}
-              onChange={(event) => setUntil(event.target.value)}
-            />
-          </Field>
-        </div>
+        {showRange ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="İlk gün" hint="boş olabilir">
+              <input
+                type="date"
+                className={inputClass}
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
+              />
+            </Field>
+            <Field label="Son gün" hint="boş olabilir">
+              <input
+                type="date"
+                className={inputClass}
+                value={until}
+                onChange={(event) => setUntil(event.target.value)}
+              />
+            </Field>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowRange(true)}
+            className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-paper"
+          >
+            Tarih aralığı ver
+          </button>
+        )}
 
         {error ? (
           <p className="nb-thin rounded-sm bg-coral px-2.5 py-1.5 text-xs font-bold">
