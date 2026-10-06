@@ -23,7 +23,7 @@ const ITEMS: {
     label: "Ana Sayfa",
     accent: "bg-gold",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <path
           d="M3.5 11 12 4l8.5 7"
           fill="none"
@@ -54,7 +54,7 @@ const ITEMS: {
     label: "Ajanda",
     accent: "bg-sky",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect
           x="3.5"
           y="5"
@@ -81,7 +81,7 @@ const ITEMS: {
     label: "Almanak",
     accent: "bg-lilac",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect x="3.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />
         <rect x="13.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />
         <rect x="3.5" y="13.5" width="7" height="7" rx="1.2" fill="currentColor" />
@@ -110,7 +110,7 @@ function RailButton({
       onClick={onClick}
       aria-label={label}
       aria-current={active ? "page" : undefined}
-      className={`press-sm group relative flex h-12 w-12 items-center justify-center rounded-md nb ${
+      className={`press-sm group relative flex h-10 w-10 items-center justify-center rounded-md nb ${
         active ? `${accent} shadow-nb-sm` : "bg-card hover:bg-tint"
       }`}
     >
@@ -132,7 +132,7 @@ export function Sidebar({ view, onSelect, onOpenSettings, settingsOpen }: Props)
         type="button"
         onClick={() => onSelect("panel")}
         aria-label="Doffice, ana sayfaya git"
-        className="press-sm group relative mb-1 h-12 w-12 rounded-[11px] shadow-nb-sm"
+        className="press-sm group relative mb-2 h-12 w-12 rounded-[11px]"
       >
         <Logo className="h-12 w-12" />
         <span
@@ -164,7 +164,7 @@ export function Sidebar({ view, onSelect, onOpenSettings, settingsOpen }: Props)
           accent="bg-mint"
           onClick={onOpenSettings}
         >
-          <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
             <circle
               cx="12"
               cy="12"
