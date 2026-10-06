@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { OPEN_DAY } from "@/lib/availability";
 import {
   LINK_LIFETIMES,
-  durationLabel,
   linkIsLive,
   type Routine,
   type RoutineDraft,
@@ -159,13 +157,6 @@ export function SettingsDialog({
         >
           {tab === "baglanti" ? (
             <div className="space-y-3">
-              <p className="text-sm font-medium leading-relaxed text-ink-soft">
-                Bağlantı takvimini okur: {OPEN_DAY.start} ile {OPEN_DAY.end} arası{" "}
-                {durationLabel(OPEN_DAY.slotMinutes)} dilimler üretir,
-                kayıtlarının ve rutinlerinin kapattığı saatleri dolu gösterir.
-                Karşı taraf kayıt içeriğini görmez.
-              </p>
-
               <div className="nb-thin space-y-3 rounded-md bg-cream px-3 py-3">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
                   <Field label="Kime veya ne için" hint="boş olabilir">
@@ -219,7 +210,7 @@ export function SettingsDialog({
 
               {liveLinks.length === 0 ? (
                 <p className="nb-thin rounded-md border-dashed bg-tint/60 px-3 py-5 text-center text-sm font-bold">
-                  Açık bağlantı yok. Yukarıdan oluştur.
+                  Açık bağlantı yok.
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -320,9 +311,8 @@ export function SettingsDialog({
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
                   Veri
                 </h3>
-                <p className="text-sm font-medium leading-relaxed text-ink-soft">
-                  {total} kayıt, {routines.length} rutin tutuluyor. Yedek
-                  dosyası kayıtları, rutinleri ve çalışma düzenini kapsar.
+                <p className="text-sm font-bold text-ink-soft">
+                  {total} kayıt, {routines.length} rutin
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <a

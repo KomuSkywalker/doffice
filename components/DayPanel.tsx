@@ -113,9 +113,7 @@ export function DayPanel({
         <div className="flex-1 space-y-4 px-5 py-5">
           {events.length === 0 ? (
             <p className="nb rounded-lg border-dashed bg-card/70 px-4 py-8 text-center text-sm font-bold">
-              Bu güne henüz bir şey eklenmedi.
-              <br />
-              Aşağıdaki kutudan ilk kaydı oluştur.
+              Bu güne bir şey eklenmedi.
             </p>
           ) : (
             <ul className="space-y-3">
@@ -187,9 +185,7 @@ export function DayPanel({
                     </div>
 
                     {routine ? (
-                      <p className="mt-3 border-t-2 border-ink/10 pt-2.5 text-[11px] font-medium text-muted">
-                        Rutinleri Ayarlar bölümünden düzenlersin.
-                      </p>
+                      <span className="sr-only">Rutin kaydı</span>
                     ) : (
                       <div className="mt-3 flex items-center justify-end gap-2 border-t-2 border-ink/10 pt-2.5">
                         <button

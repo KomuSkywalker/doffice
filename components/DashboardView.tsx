@@ -122,7 +122,7 @@ export function DashboardView({
             </p>
             {todayEvents.length === 0 ? (
               <p className="nb-thin rounded-md border-dashed bg-tint/60 px-4 py-8 text-center text-sm font-bold">
-                Bugün temiz. Yeni kayıt ekleyebilirsin.
+                Bugün temiz.
               </p>
             ) : (
               <ul className="space-y-2.5">

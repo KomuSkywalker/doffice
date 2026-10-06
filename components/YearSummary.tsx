@@ -84,7 +84,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
         <div className="px-4 py-4">
           {tagRows.length === 0 ? (
             <p className="text-sm font-medium text-muted">
-              Henüz etiket verilmedi. Kayıt eklerken etiket adı yazabilirsin.
+              Henüz etiket verilmedi.
             </p>
           ) : (
             <ul className="space-y-2">

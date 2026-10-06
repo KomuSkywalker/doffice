@@ -127,11 +127,6 @@ export function RoutineManager({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium leading-relaxed text-ink-soft">
-        Her hafta tekrar eden sabit işlerin. Seçtiğin günlerde takvimde
-        görünür, müsaitlik bağlantısında o saatleri kapatır.
-      </p>
-
       <div className="nb-thin space-y-3 rounded-md bg-cream px-3 py-3">
         <Field label={editingId ? "Rutini düzenle" : "Yeni rutin"}>
           <input
@@ -264,7 +259,7 @@ export function RoutineManager({
 
       {routines.length === 0 ? (
         <p className="nb-thin rounded-md border-dashed bg-tint/60 px-3 py-5 text-center text-sm font-bold">
-          Henüz rutin yok. Yukarıdan ekle.
+          Henüz rutin yok.
         </p>
       ) : (
         <ul className="space-y-2">

@@ -591,11 +591,6 @@ export function Doffice({
             ) : null}
           </div>
 
-          <p className="no-print mt-6 hidden text-xs font-medium leading-relaxed text-ink/60 lg:block">
-            Kısayollar: p ana sayfa, a ajanda, y almanak, b bildirimler, t bugün,
-            n yeni kayıt, eğik çizgi arama. Ajandada ok tuşlarıyla gün gezer,
-            Enter ile günü açarsın.
-          </p>
         </div>
       </div>
 

@@ -77,9 +77,6 @@ export function LoginScreen() {
           {pending ? "Kontrol ediliyor" : "Gir"}
         </Button>
 
-        <p className="text-center text-xs font-medium text-muted">
-          Randevu almak için paylaşılan müsaitlik bağlantısını kullan.
-        </p>
       </form>
     </main>
   );
