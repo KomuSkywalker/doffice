@@ -1,0 +1,174 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { AlmanakEvent, EventDraft, Repeat, TagId } from "@/lib/types";
+import { REPEATS } from "@/lib/types";
+import { Button, Field, FieldGroup, TagPicker, inputClass } from "./ui";
+
+type Props = {
+  dateKey: string;
+  editing: AlmanakEvent | null;
+  pending: boolean;
+  onSubmit: (draft: EventDraft) => Promise<boolean>;
+  onCancel: () => void;
+};
+
+export function EventForm({
+  dateKey,
+  editing,
+  pending,
+  onSubmit,
+  onCancel,
+}: Props) {
+  const [title, setTitle] = useState(editing?.title ?? "");
+  const [time, setTime] = useState(editing?.time ?? "");
+  const [tag, setTag] = useState<TagId>(editing?.tag ?? "genel");
+  const [repeat, setRepeat] = useState<Repeat>(editing?.repeat ?? "yok");
+  const [note, setNote] = useState(editing?.note ?? "");
+  const [date, setDate] = useState(editing?.date ?? dateKey);
+  const [error, setError] = useState<string | null>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) titleRef.current?.focus();
+  }, [editing]);
+
+  const submit = async () => {
+    if (title.trim().length === 0) {
+      setError("Başlık gerekli.");
+      titleRef.current?.focus();
+      return;
+    }
+    const draft: EventDraft = {
+      date: editing ? date : dateKey,
+      title: title.trim(),
+      time: time.length > 0 ? time : null,
+      note: note.trim().length > 0 ? note.trim() : null,
+      tag,
+      repeat,
+    };
+    const done = await onSubmit(draft);
+    if (!done) {
+      setError("Kaydedilemedi, tekrar dene.");
+      return;
+    }
+    setError(null);
+    if (!editing) {
+      setTitle("");
+      setTime("");
+      setNote("");
+      setRepeat("yok");
+      titleRef.current?.focus();
+    }
+  };
+
+  return (
+    <form
+      className="space-y-3 rounded-lg border border-line bg-surface p-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void submit();
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-[15px] font-semibold">
+          {editing ? "Kaydı düzenle" : "Yeni kayıt"}
+        </h3>
+        {editing ? (
+          <Button tone="quiet" onClick={onCancel} className="px-2 py-1 text-xs">
+            Vazgeç
+          </Button>
+        ) : null}
+      </div>
+
+      <Field label="Başlık">
+        <input
+          ref={titleRef}
+          className={inputClass}
+          value={title}
+          maxLength={160}
+          placeholder="Ne olacak?"
+          onChange={(event) => setTitle(event.target.value)}
+        />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Saat" hint="boş olabilir">
+          <input
+            type="time"
+            className={inputClass}
+            value={time}
+            onChange={(event) => setTime(event.target.value)}
+          />
+        </Field>
+        {editing ? (
+          <Field label="Tarih">
+            <input
+              type="date"
+              className={inputClass}
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+            />
+          </Field>
+        ) : (
+          <Field label="Tekrar">
+            <select
+              className={inputClass}
+              value={repeat}
+              onChange={(event) => setRepeat(event.target.value as Repeat)}
+            >
+              {REPEATS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+      </div>
+
+      {editing ? (
+        <Field label="Tekrar">
+          <select
+            className={inputClass}
+            value={repeat}
+            onChange={(event) => setRepeat(event.target.value as Repeat)}
+          >
+            {REPEATS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : null}
+
+      <FieldGroup label="Etiket">
+        <TagPicker value={tag} onChange={setTag} />
+      </FieldGroup>
+
+      <Field label="Not" hint="boş olabilir">
+        <textarea
+          className={`${inputClass} min-h-[70px] resize-y`}
+          value={note}
+          maxLength={2000}
+          placeholder="Detay, adres, kişi"
+          onChange={(event) => setNote(event.target.value)}
+        />
+      </Field>
+
+      {error ? (
+        <p className="text-xs font-medium text-accent-ink">{error}</p>
+      ) : null}
+
+      <div className="flex items-center gap-2">
+        <Button type="submit" tone="solid" disabled={pending}>
+          {editing ? "Kaydet" : "Güne ekle"}
+        </Button>
+        <span className="text-xs text-muted">
+          {editing ? "Enter ile kaydet" : "Enter ile ekle"}
+        </span>
+      </div>
+    </form>
+  );
+}
