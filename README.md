@@ -108,13 +108,23 @@ Anahtar tarayıcıda yalnızca sekme oturumu boyunca saklanır.
   yüksek bulgu yalnızca `eslint-config-next` zincirindedir, geliştirme
   bağımlılığıdır ve kırıcı sürüm değişikliği olmadan kapanmıyor.
 
-## Yayın notu
+## Yayın
 
-Vercel gibi sunucusuz ortamlarda dosya sistemi kalıcı değildir, oraya
-çıkarsa veri her dağıtımda sıfırlanır. Kalıcı yayın için ya kendi
-sunucunda `npm start` ile çalıştır ya da `lib/store.ts` içindeki okuma ve
-yazma fonksiyonlarını Vercel KV, Supabase gibi bir depoya bağla. Dosya
-arayüzü tek yerde toplandığı için değişiklik `lib/store.ts` ile sınırlıdır.
+Depolama iki sürücülüdür ve ortama göre kendisi seçer.
+
+- **Yerel çalışmada** kayıtlar `data/events.json` dosyasına yazılır.
+- **Vercel gibi sunucusuz ortamda** dosya sistemi salt okunur olduğu için
+  Vercel Blob kullanılır. Projeye bir Blob deposu bağlandığında
+  `BLOB_READ_WRITE_TOKEN` otomatik gelir ve kayıtlar `doffice/events.json`
+  adıyla özel (private) blob olarak saklanır, herkese açık bir adresi
+  olmaz.
+
+Blob bağlı değilse site açılır ve örnek kayıtları gösterir, ancak yazma
+denemeleri "kalıcı depolama bağlı değil" hatası döner.
+
+Yayına çıkarken `DOFFICE_KEY` tanımlamak gerekir, yoksa adresi bilen
+herkes kayıt ekleyip silebilir. Anahtar yalnızca yazmayı korur, okumayı
+korumaz.
 
 ## Mock içerik
 

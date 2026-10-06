@@ -1,6 +1,6 @@
 import { deniedResponse, hasWriteAccess } from "@/lib/auth";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { listEvents, replaceEvents } from "@/lib/store";
+import { listEvents, replaceEvents, StorageError } from "@/lib/store";
 import { isEventShape } from "@/lib/validate";
 import { todayKey } from "@/lib/dates";
 import type { DofficeEvent } from "@/lib/types";
@@ -58,6 +58,13 @@ export async function PUT(request: Request) {
     );
   }
 
-  const events = await replaceEvents(valid);
-  return Response.json({ events, imported: events.length });
+  try {
+    const events = await replaceEvents(valid);
+    return Response.json({ events, imported: events.length });
+  } catch (error) {
+    if (error instanceof StorageError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+    throw error;
+  }
 }

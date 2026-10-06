@@ -1,6 +1,6 @@
 import { deniedResponse, hasWriteAccess, writeKeyRequired } from "@/lib/auth";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { createEvent, listEvents } from "@/lib/store";
+import { createEvent, listEvents, StorageError } from "@/lib/store";
 import { parseDraft } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +26,13 @@ export async function POST(request: Request) {
     return Response.json({ error: parsed.error }, { status: 400 });
   }
 
-  const event = await createEvent(parsed.value);
-  return Response.json({ event }, { status: 201 });
+  try {
+    const event = await createEvent(parsed.value);
+    return Response.json({ event }, { status: 201 });
+  } catch (error) {
+    if (error instanceof StorageError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+    throw error;
+  }
 }

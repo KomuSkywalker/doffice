@@ -13,7 +13,15 @@ const DATA_FILE = path.join(
 
 const SAMPLE_FILE = path.join(DATA_DIR, "events.sample.json");
 
+const BLOB_PATH = "doffice/events.json";
+
 let writeChain: Promise<unknown> = Promise.resolve();
+
+export class StorageError extends Error {}
+
+function blobToken() {
+  return process.env.BLOB_READ_WRITE_TOKEN;
+}
 
 function serialize(events: DofficeEvent[]) {
   return `${JSON.stringify(events, null, 2)}\n`;
@@ -35,8 +43,7 @@ function normalize(row: Record<string, unknown>): DofficeEvent {
   };
 }
 
-async function readRaw(file: string) {
-  const text = await fs.readFile(file, "utf8");
+function parseEvents(text: string): DofficeEvent[] {
   const parsed: unknown = JSON.parse(text);
   if (!Array.isArray(parsed)) return [];
   return parsed
@@ -44,29 +51,93 @@ async function readRaw(file: string) {
     .map((row) => normalize(row as unknown as Record<string, unknown>));
 }
 
+async function readFileEvents(file: string) {
+  return parseEvents(await fs.readFile(file, "utf8"));
+}
+
+async function readSample() {
+  try {
+    return await readFileEvents(SAMPLE_FILE);
+  } catch {
+    return [];
+  }
+}
+
+async function blobRead(): Promise<DofficeEvent[] | null> {
+  const token = blobToken();
+  if (!token) return null;
+  const { get } = await import("@vercel/blob");
+  const found = await get(BLOB_PATH, {
+    access: "private",
+    token,
+    useCache: false,
+  });
+  if (!found || found.statusCode !== 200 || !found.stream) return null;
+  return parseEvents(await new Response(found.stream).text());
+}
+
+async function blobWrite(events: DofficeEvent[]) {
+  const token = blobToken();
+  if (!token) throw new StorageError("Blob anahtarı tanımlı değil.");
+  const { put } = await import("@vercel/blob");
+  await put(BLOB_PATH, serialize(events), {
+    access: "private",
+    token,
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+    cacheControlMaxAge: 0,
+  });
+}
+
+async function fileWrite(events: DofficeEvent[]) {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    const temp = `${DATA_FILE}.${process.pid}.tmp`;
+    await fs.writeFile(temp, serialize(events), "utf8");
+    await fs.rename(temp, DATA_FILE);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "EROFS" || code === "EACCES" || code === "EPERM") {
+      throw new StorageError(
+        "Bu sunucuda dosyaya yazılamıyor. Kalıcı depolama için Blob bağla.",
+      );
+    }
+    throw error;
+  }
+}
+
 async function persist(events: DofficeEvent[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  const temp = `${DATA_FILE}.${process.pid}.tmp`;
-  await fs.writeFile(temp, serialize(events), "utf8");
-  await fs.rename(temp, DATA_FILE);
+  if (blobToken()) {
+    await blobWrite(events);
+    return;
+  }
+  await fileWrite(events);
 }
 
 export async function listEvents(): Promise<DofficeEvent[]> {
+  if (blobToken()) {
+    const stored = await blobRead();
+    if (stored) return stored;
+    const seed = await readSample();
+    await blobWrite(seed);
+    return seed;
+  }
+
   try {
-    return await readRaw(DATA_FILE);
+    return await readFileEvents(DATA_FILE);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code !== "ENOENT") throw error;
   }
 
+  const seed = await readSample();
   try {
-    const seed = await readRaw(SAMPLE_FILE);
-    await persist(seed);
-    return seed;
+    await fileWrite(seed);
   } catch {
-    await persist([]);
-    return [];
+    return seed;
   }
+  return seed;
 }
 
 function mutate<T>(task: (events: DofficeEvent[]) => Promise<T> | T): Promise<T> {

@@ -1,6 +1,6 @@
 import { deniedResponse, hasWriteAccess } from "@/lib/auth";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { deleteEvent, updateEvent } from "@/lib/store";
+import { deleteEvent, StorageError, updateEvent } from "@/lib/store";
 import { parseDraft } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -31,11 +31,18 @@ export async function PATCH(
     return Response.json({ error: parsed.error }, { status: 400 });
   }
 
-  const event = await updateEvent(id, parsed.value);
-  if (!event) {
-    return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+  try {
+    const event = await updateEvent(id, parsed.value);
+    if (!event) {
+      return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    }
+    return Response.json({ event });
+  } catch (error) {
+    if (error instanceof StorageError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+    throw error;
   }
-  return Response.json({ event });
 }
 
 export async function DELETE(
@@ -48,9 +55,16 @@ export async function DELETE(
   const { id } = await context.params;
   if (!id || id.length > 100) return invalidId();
 
-  const removed = await deleteEvent(id);
-  if (!removed) {
-    return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+  try {
+    const removed = await deleteEvent(id);
+    if (!removed) {
+      return Response.json({ error: "Kayıt bulunamadı." }, { status: 404 });
+    }
+    return Response.json({ ok: true });
+  } catch (error) {
+    if (error instanceof StorageError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+    throw error;
   }
-  return Response.json({ ok: true });
 }
