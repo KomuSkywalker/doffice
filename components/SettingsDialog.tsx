@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WEEKDAY_NAMES } from "@/lib/dates";
+import { WEEKDAY_NAMES, WEEKDAY_SHORT } from "@/lib/dates";
 import { DURATIONS, durationLabel, type Availability } from "@/lib/types";
 import { Button, Field, FieldGroup, inputClass } from "./ui";
 
@@ -147,6 +147,7 @@ export function SettingsDialog({
                   return (
                     <button
                       key={label}
+                      title={label}
                       type="button"
                       onClick={() => toggleDay(day)}
                       aria-pressed={active}
@@ -154,7 +155,7 @@ export function SettingsDialog({
                         active ? "bg-gold" : "bg-card hover:bg-cream"
                       }`}
                     >
-                      {label.slice(0, 3)}
+                      {WEEKDAY_SHORT[day]}
                     </button>
                   );
                 })}

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import {
   MONTH_NAMES,
-  WEEKDAY_NAMES,
+  WEEKDAY_SHORT,
   formatLong,
   parseKey,
   weekdayOfKey,
@@ -225,7 +225,7 @@ export function BookingPage({ initial }: { initial: Payload }) {
                         {parts.day}
                       </span>
                       <span className="text-[11px] font-bold uppercase text-muted">
-                        {WEEKDAY_NAMES[weekdayOfKey(day.key)].slice(0, 3)}
+                        {WEEKDAY_SHORT[weekdayOfKey(day.key)]}
                       </span>
                       <span className="tabular mt-1 text-[11px] font-medium text-muted">
                         {day.slots.length} saat
