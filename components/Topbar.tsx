@@ -26,6 +26,7 @@ const TITLES: Record<ViewId, string> = {
   panel: "Ana Sayfa",
   ay: "Ajanda",
   yil: "Almanak",
+  bildirim: "Bildirimler",
 };
 
 export function Topbar({
@@ -49,7 +50,9 @@ export function Topbar({
       ? `${MONTH_NAMES[month]} ${year}`
       : view === "yil"
         ? String(year)
-        : formatLong(today);
+        : view === "bildirim"
+          ? "Randevu talepleri"
+          : formatLong(today);
 
   return (
     <header className="no-print mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">

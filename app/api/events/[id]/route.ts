@@ -1,4 +1,4 @@
-import { deniedResponse, hasWriteAccess } from "@/lib/auth";
+import { requestAuthorized, unauthorizedResponse } from "@/lib/session";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
 import { deleteEvent, StorageError, updateEvent } from "@/lib/store";
 import { parseDraft } from "@/lib/validate";
@@ -14,7 +14,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   if (!allowRequest(request)) return throttledResponse();
-  if (!hasWriteAccess(request)) return deniedResponse();
+  if (!requestAuthorized(request)) return unauthorizedResponse();
 
   const { id } = await context.params;
   if (!id || id.length > 100) return invalidId();
@@ -50,7 +50,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   if (!allowRequest(request)) return throttledResponse();
-  if (!hasWriteAccess(request)) return deniedResponse();
+  if (!requestAuthorized(request)) return unauthorizedResponse();
 
   const { id } = await context.params;
   if (!id || id.length > 100) return invalidId();

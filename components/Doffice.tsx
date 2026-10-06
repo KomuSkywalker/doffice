@@ -1,28 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
-  makeKey,
-  monthCells,
-  parseKey,
-  shiftKey,
-  shiftMonth,
-} from "@/lib/dates";
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { makeKey, monthCells, parseKey, shiftKey, shiftMonth } from "@/lib/dates";
 import { eventsOn, indexRange, searchEvents } from "@/lib/occurrences";
-import {
-  hasWriteKeyServerSnapshot,
-  hasWriteKeySnapshot,
-  saveWriteKey,
-  subscribeToday,
-  subscribeWriteKey,
-  todaySnapshot,
-  writeKeyHeader,
-} from "@/lib/client-store";
-import type { DofficeEvent, EventDraft } from "@/lib/types";
+import { subscribeToday, todaySnapshot } from "@/lib/client-clock";
+import type {
+  Appointment,
+  AppNotification,
+  Availability,
+  DofficeEvent,
+  EventDraft,
+} from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
-import { KeyPrompt } from "./KeyPrompt";
 import { MonthView } from "./MonthView";
+import { NotificationsView } from "./NotificationsView";
 import { SettingsDialog } from "./SettingsDialog";
 import { Sidebar, type ViewId } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -31,7 +30,9 @@ import { YearView } from "./YearView";
 
 type Props = {
   initialEvents: DofficeEvent[];
-  locked: boolean;
+  initialAvailability: Availability;
+  initialNotifications: AppNotification[];
+  initialAppointments: Appointment[];
   serverToday: string;
 };
 
@@ -43,15 +44,28 @@ type WriteCall = {
   onDone: (payload: unknown) => void;
 };
 
-export function Doffice({ initialEvents, locked, serverToday }: Props) {
-  const today = useSyncExternalStore(subscribeToday, todaySnapshot, () => serverToday);
-  const hasKey = useSyncExternalStore(
-    subscribeWriteKey,
-    hasWriteKeySnapshot,
-    hasWriteKeyServerSnapshot,
+export function Doffice({
+  initialEvents,
+  initialAvailability,
+  initialNotifications,
+  initialAppointments,
+  serverToday,
+}: Props) {
+  const today = useSyncExternalStore(
+    subscribeToday,
+    todaySnapshot,
+    () => serverToday,
   );
 
   const [events, setEvents] = useState(initialEvents);
+  const [availability, setAvailability] = useState(initialAvailability);
+  const [notifications, setNotifications] =
+    useState<AppNotification[]>(initialNotifications);
+  const [appointments, setAppointments] =
+    useState<Appointment[]>(initialAppointments);
+  const [unread, setUnread] = useState(
+    () => initialNotifications.filter((row) => !row.readAt).length,
+  );
   const [view, setView] = useState<ViewId>("panel");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cursor, setCursor] = useState(() => {
@@ -63,8 +77,6 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
-  const [keyPromptOpen, setKeyPromptOpen] = useState(false);
-  const retryRef = useRef<WriteCall | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -74,25 +86,40 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const refresh = useCallback(async () => {
-    const response = await fetch("/api/events", { cache: "no-store" });
+  const loadNotifications = useCallback(async () => {
+    const response = await fetch("/api/bildirim", { cache: "no-store" });
     if (!response.ok) return;
-    const data = (await response.json()) as { events: DofficeEvent[] };
-    setEvents(data.events);
+    const data = (await response.json()) as {
+      notifications: AppNotification[];
+      appointments: Appointment[];
+    };
+    setNotifications(data.notifications);
+    setAppointments(data.appointments);
+    setUnread(data.notifications.filter((row) => !row.readAt).length);
   }, []);
+
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === "visible") void loadNotifications();
+    };
+    const timer = window.setInterval(check, 60_000);
+    window.addEventListener("focus", check);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", check);
+    };
+  }, [loadNotifications]);
 
   const runWrite = useCallback(async (call: WriteCall) => {
     setPending(true);
     try {
       const response = await fetch(call.path, {
         ...call.init,
-        headers: { "content-type": "application/json", ...writeKeyHeader() },
+        headers: { "content-type": "application/json" },
       });
 
       if (response.status === 401) {
-        retryRef.current = call;
-        setKeyPromptOpen(true);
-        setToast({ tone: "err", text: "Yazma için anahtar gerekli." });
+        window.location.reload();
         return false;
       }
 
@@ -186,6 +213,46 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     [runWrite],
   );
 
+  const saveAvailability = useCallback(
+    (value: Availability) =>
+      runWrite({
+        path: "/api/ayarlar",
+        init: { method: "PUT", body: JSON.stringify(value) },
+        onDone: (payload) => {
+          const data = payload as { availability: Availability };
+          setAvailability(data.availability);
+          setToast({ tone: "ok", text: "Çalışma düzeni kaydedildi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const decideAppointment = useCallback(
+    (id: string, approve: boolean) => {
+      void runWrite({
+        path: `/api/randevu/${id}`,
+        init: {
+          method: "POST",
+          body: JSON.stringify({ karar: approve ? "onayla" : "reddet" }),
+        },
+        onDone: () => {
+          setToast({
+            tone: "ok",
+            text: approve ? "Randevu onaylandı." : "Randevu reddedildi.",
+          });
+        },
+      }).then(async (saved) => {
+        if (!saved) return;
+        await loadNotifications();
+        const response = await fetch("/api/events", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { events: DofficeEvent[] };
+        setEvents(data.events);
+      });
+    },
+    [loadNotifications, runWrite],
+  );
+
   const toggleDone = useCallback(
     (event: DofficeEvent) => {
       const next = !event.done;
@@ -200,6 +267,11 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     },
     [updateEvent],
   );
+
+  const logout = useCallback(async () => {
+    await fetch("/api/auth", { method: "DELETE" });
+    window.location.reload();
+  }, []);
 
   const rangeIndex = useMemo(() => {
     if (view === "yil") {
@@ -247,7 +319,7 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
   }, []);
 
   const startNewRecord = useCallback(() => {
-    if (view === "panel") {
+    if (view === "panel" || view === "bildirim") {
       setSelected(today);
       const parsed = parseKey(today);
       setCursor({ year: parsed.year, month: parsed.month });
@@ -255,10 +327,23 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     setPanelOpen(true);
   }, [today, view]);
 
-  const pickView = useCallback((next: ViewId) => {
-    setView(next);
-    setSettingsOpen(false);
-  }, []);
+  const pickView = useCallback(
+    (next: ViewId) => {
+      setView(next);
+      setSettingsOpen(false);
+      if (next === "bildirim" && unread > 0) {
+        void fetch("/api/bildirim", { method: "POST" }).then(() => {
+          setUnread(0);
+          setNotifications((current) =>
+            current.map((row) =>
+              row.readAt ? row : { ...row, readAt: new Date().toISOString() },
+            ),
+          );
+        });
+      }
+    },
+    [unread],
+  );
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -282,11 +367,12 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
         return;
       }
 
-      if (panelOpen || keyPromptOpen || settingsOpen) return;
+      if (panelOpen || settingsOpen) return;
 
-      if (event.key === "p") setView("panel");
-      else if (event.key === "a") setView("ay");
-      else if (event.key === "y") setView("yil");
+      if (event.key === "p") pickView("panel");
+      else if (event.key === "a") pickView("ay");
+      else if (event.key === "y") pickView("yil");
+      else if (event.key === "b") pickView("bildirim");
       else if (event.key === "t") goToday();
       else if (event.key === "n") {
         event.preventDefault();
@@ -315,9 +401,9 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [
     goToday,
-    keyPromptOpen,
     moveSelection,
     panelOpen,
+    pickView,
     query,
     settingsOpen,
     startNewRecord,
@@ -328,6 +414,7 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
     <div className="relative min-h-screen">
       <Sidebar
         view={view}
+        unread={unread}
         onSelect={pickView}
         onOpenSettings={() => setSettingsOpen(true)}
         settingsOpen={settingsOpen}
@@ -348,7 +435,7 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
       />
 
       <div className="pl-[76px]">
-        <div className="mx-auto w-full max-w-[1520px] px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mx-auto w-full max-w-[1520px] px-4 pb-10 pt-6 sm:px-8 sm:py-8">
           <Topbar
             view={view}
             year={cursor.year}
@@ -405,14 +492,25 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
                   today={today}
                   onSelect={openDay}
                 />
-            </div>
-          ) : null}
+              </div>
+            ) : null}
+
+            {view === "bildirim" ? (
+              <NotificationsView
+                notifications={notifications}
+                appointments={appointments}
+                today={today}
+                pending={pending}
+                onDecide={decideAppointment}
+                onSelectDay={openDay}
+              />
+            ) : null}
           </div>
 
           <p className="no-print mt-6 hidden text-xs font-medium leading-relaxed text-ink/60 lg:block">
-            Kısayollar: p ana sayfa, a ajanda, y almanak, t bugün, n yeni kayıt,
-            eğik çizgi arama. Ajandada ok tuşlarıyla gün gezer, Enter ile günü
-            açarsın.
+            Kısayollar: p ana sayfa, a ajanda, y almanak, b bildirimler, t bugün,
+            n yeni kayıt, eğik çizgi arama. Ajandada ok tuşlarıyla gün gezer,
+            Enter ile günü açarsın.
           </p>
         </div>
       </div>
@@ -434,29 +532,13 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
 
       {settingsOpen ? (
         <SettingsDialog
-          locked={locked}
-          hasKey={hasKey}
+          availability={availability}
           total={events.length}
+          pending={pending}
           onClose={() => setSettingsOpen(false)}
-          onUnlock={() => setKeyPromptOpen(true)}
           onPickFile={() => fileRef.current?.click()}
-        />
-      ) : null}
-
-      {keyPromptOpen ? (
-        <KeyPrompt
-          onClose={() => {
-            setKeyPromptOpen(false);
-            retryRef.current = null;
-          }}
-          onSubmit={(value) => {
-            saveWriteKey(value);
-            setKeyPromptOpen(false);
-            const retry = retryRef.current;
-            retryRef.current = null;
-            if (retry) void runWrite(retry);
-            else void refresh();
-          }}
+          onSave={saveAvailability}
+          onLogout={() => void logout()}
         />
       ) : null}
 
@@ -464,7 +546,7 @@ export function Doffice({ initialEvents, locked, serverToday }: Props) {
         <div
           role="status"
           className={`anim-rise no-print nb fixed bottom-6 left-6 z-50 rounded-md px-4 py-2.5 text-sm font-bold shadow-nb ${
-            toast.tone === "ok" ? "bg-gold text-ink" : "bg-coral"
+            toast.tone === "ok" ? "bg-gold text-ink" : "bg-coral text-ink"
           }`}
         >
           {toast.text}

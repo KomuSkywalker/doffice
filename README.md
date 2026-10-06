@@ -26,6 +26,14 @@ npm run build
 npm start
 ```
 
+## Giriş
+
+Panel şifreyle korunur. Şifre `DOFFICE_PASSWORD` ortam değişkeninden gelir,
+kodda yazmaz. Doğru şifre girilince imzalı bir oturum çerezi kurulur ve
+otuz gün geçerli olur. Çıkış, ayarlar penceresindeki düğmeyle yapılır.
+
+Üretimde şifre tanımlı değilse panel açılmaz, kurulum uyarısı gösterilir.
+
 ## Görünümler
 
 Sol kenarda ince bir ikon rayı var. İkonun üzerine gelince adı yazar, en
@@ -35,17 +43,35 @@ altta ayarlar durur.
   programı, gecikenler listesi ve yaklaşan kayıtlar.
 - **Ajanda**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
   etiketleriyle görünür.
+- **Bildirimler**: gelen randevu talepleri. Onaylanan talep takvime kayıt
+  olarak düşer, reddedilen düşmez. Okunmamış talep sayısı ikon üstünde
+  rozet olarak görünür.
 - **Almanak**: on iki ay tek ekranda, kayıtlı günler işaretli. Altında yıl
   özeti, etiket dağılımı ve sıradaki kayıtlar.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
-- **Ayarlar**: yedek alma, yedek yükleme ve yazma kilidi. Rayın en
-  altındaki dişli açar.
+- **Ayarlar**: müsaitlik bağlantısı, çalışma düzeni, yedek işlemleri ve
+  çıkış. Rayın en altındaki dişli açar.
 
 Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
 içinde vektör olarak durur, aynı çizim `app/icon.svg` ile sekme
 ikonunda, `app/apple-icon.png` ile iOS kısayolunda ve `public/logo.svg`
 ile paylaşımlarda kullanılır.
+
+## Müsaitlik ve randevu
+
+`/musaitlik` sayfası şifresizdir, paylaşılmak için vardır. Ziyaretçi o
+aydaki boş gün ve saatleri görür, kayıtların içeriğini görmez.
+
+Boş saat hesabı şöyle çalışır: çalışma günleri ve saatleri ayarlardan
+gelir, aralık randevu süresine bölünür, üstüne denk gelen kayıtlar ve
+bekleyen randevular düşülür. Bir kaydın kapattığı süre, kayıt formundaki
+süre alanıdır.
+
+Ziyaretçi saat seçip ad ve iletişim bırakınca talep düşer. Talep anında
+bildirime gelir, panelden onaylanır veya reddedilir. Form gizli alan
+(honeypot) ve saatte sekiz istek sınırıyla korunur, seçilen saat sunucuda
+yeniden doğrulanır.
 
 ## Kayıt alanları
 
@@ -90,16 +116,21 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 
 | Değişken | Varsayılan | Açıklama |
 | --- | --- | --- |
-| `DOFFICE_KEY` | boş | Doluysa ekleme, düzenleme, silme ve yedek yükleme için anahtar istenir. Boşsa yazma serbesttir, yerel kullanım içindir. |
+| `DOFFICE_PASSWORD` | boş | Panele giriş şifresi. Üretimde zorunludur, boşsa panel kapanır. Yerelde boş bırakılırsa giriş sorulmaz. |
+| `DOFFICE_SECRET` | şifreden türetilir | Oturum çerezini imzalayan gizli değer. Tanımlanırsa şifre değişse de oturumlar ayrı kalır. |
 | `DOFFICE_DATA_FILE` | `events.json` | `data/` klasörü içindeki veri dosyasının adı. |
+| `TZ` | sistem saati | Sunucu saat dilimi. Vercel'de `Europe/Istanbul` verilmelidir, yoksa boş saatler UTC'ye göre hesaplanır. |
 
-Anahtar tarayıcıda yalnızca sekme oturumu boyunca saklanır.
+Oturum çerezi HttpOnly ve SameSite korumalıdır, üretimde yalnızca
+HTTPS üzerinden gider.
 
 ## Güvenlik
 
 - Tüm API girdileri sunucuda doğrulanır, bilinmeyen etiket ve bozuk
   tarih reddedilir.
-- Yazma uçlarında dakikada 120 istek sınırı vardır.
+- Panel uçları oturum çerezi ister, randevu ucu dışarıya açıktır.
+- İstek sınırı kovalara ayrılmıştır: genel dakikada 120, giriş on
+  dakikada 12, randevu saatte 8.
 - `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`
   ve CSP başlıkları `next.config.ts` içinde tanımlıdır.
 - Site `noindex` işaretlidir ve `robots.txt` tüm taramayı kapatır, kişisel
@@ -126,12 +157,8 @@ Depolama iki sürücülüdür ve ortama göre kendisi seçer.
 Blob bağlı değilse site açılır ve örnek kayıtları gösterir, ancak yazma
 denemeleri "kalıcı depolama bağlı değil" hatası döner.
 
-Yayına çıkarken `DOFFICE_KEY` tanımlamak gerekir, yoksa adresi bilen
-herkes kayıt ekleyip silebilir. Canlı kurulumda bu anahtar tanımlıdır,
-panelde ayarlar penceresinden girilir ve sekme oturumu boyunca saklanır.
-
-Anahtar yalnızca yazmayı korur. Adresi bilen biri kayıtları okuyabilir,
-okuma koruması istenirse giriş ekranı eklenmelidir.
+Panel şifreyle kapalıdır, yalnızca `/musaitlik` sayfası ve randevu ucu
+dışarıya açıktır.
 
 ## Mock içerik
 

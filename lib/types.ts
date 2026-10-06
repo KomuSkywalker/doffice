@@ -13,6 +13,7 @@ export type DofficeEvent = {
   id: string;
   date: string;
   time: string | null;
+  duration: number;
   title: string;
   note: string | null;
   tag: TagId;
@@ -25,12 +26,68 @@ export type DofficeEvent = {
 export type EventDraft = {
   date: string;
   time?: string | null;
+  duration?: number;
   title: string;
   note?: string | null;
   tag?: TagId;
   repeat?: Repeat;
   done?: boolean;
 };
+
+export type AppointmentStatus = "bekliyor" | "onaylandi" | "reddedildi";
+
+export type Appointment = {
+  id: string;
+  date: string;
+  time: string;
+  duration: number;
+  name: string;
+  contact: string;
+  note: string | null;
+  status: AppointmentStatus;
+  eventId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AppNotification = {
+  id: string;
+  kind: "randevu";
+  appointmentId: string;
+  title: string;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type Availability = {
+  days: number[];
+  start: string;
+  end: string;
+  slotMinutes: number;
+  horizonDays: number;
+  note: string;
+};
+
+export type StoreDoc = {
+  events: DofficeEvent[];
+  appointments: Appointment[];
+  notifications: AppNotification[];
+  availability: Availability;
+};
+
+export const DEFAULT_AVAILABILITY: Availability = {
+  days: [0, 1, 2, 3, 4],
+  start: "09:00",
+  end: "18:00",
+  slotMinutes: 60,
+  horizonDays: 45,
+  note: "",
+};
+
+export const DEFAULT_DURATION = 60;
+
+export const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 
 export const TAGS: { id: TagId; label: string; color: string }[] = [
   { id: "genel", label: "Genel", color: "#eec14b" },
@@ -59,4 +116,12 @@ export function tagOf(id: TagId) {
 
 export function repeatLabel(id: Repeat) {
   return REPEATS.find((repeat) => repeat.id === id)?.label ?? "Tekrar yok";
+}
+
+export function durationLabel(minutes: number) {
+  if (minutes < 60) return `${minutes} dakika`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (rest === 0) return `${hours} saat`;
+  return `${hours} saat ${rest} dakika`;
 }
