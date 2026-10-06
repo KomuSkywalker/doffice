@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f2ede1;
-  --color-shell: #e7dfcd;
-  --color-tint: #efe7d6;
-  --color-cream: #f6f1e7;
-  --color-card: #fbf8f1;
+  --color-paper: #f5f2ea;
+  --color-shell: #ece6d8;
+  --color-tint: #f0ebdd;
+  --color-cream: #f8f4ec;
+  --color-card: #fffdf8;
   --color-ink: #121212;
   --color-ink-soft: #3b3a36;
   --color-muted: #5f5b52;
