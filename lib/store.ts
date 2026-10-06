@@ -1,14 +1,16 @@
 import { promises as fs } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import path from "node:path";
 import {
   DEFAULT_AVAILABILITY,
   DEFAULT_DURATION,
+  linkIsLive,
   type Appointment,
   type AppNotification,
   type Availability,
   type DofficeEvent,
   type EventDraft,
+  type ShareLink,
   type StoreDoc,
 } from "./types";
 import { isEventShape } from "./validate";
@@ -36,6 +38,7 @@ function emptyDoc(): StoreDoc {
     appointments: [],
     notifications: [],
     availability: { ...DEFAULT_AVAILABILITY },
+    links: [],
   };
 }
 
@@ -83,6 +86,9 @@ function normalizeDoc(parsed: unknown): StoreDoc {
   }
   if (Array.isArray(row.notifications)) {
     doc.notifications = row.notifications as AppNotification[];
+  }
+  if (Array.isArray(row.links)) {
+    doc.links = row.links as ShareLink[];
   }
   if (typeof row.availability === "object" && row.availability !== null) {
     doc.availability = {
@@ -344,4 +350,43 @@ export function markNotificationsRead() {
     await writeDoc(doc);
     return doc.notifications;
   });
+}
+
+export function createLink(label: string, lifetimeDays: number) {
+  return mutate(async (doc) => {
+    const now = new Date();
+    const link: ShareLink = {
+      id: randomUUID(),
+      token: randomBytes(9).toString("base64url"),
+      label,
+      createdAt: now.toISOString(),
+      expiresAt:
+        lifetimeDays > 0
+          ? new Date(now.getTime() + lifetimeDays * 86400000).toISOString()
+          : null,
+      revokedAt: null,
+    };
+    doc.links = [link, ...doc.links].slice(0, 100);
+    await writeDoc(doc);
+    return link;
+  });
+}
+
+export function revokeLink(id: string) {
+  return mutate(async (doc) => {
+    const current = doc.links.find((row) => row.id === id);
+    if (!current) return null;
+    const updated: ShareLink = { ...current, revokedAt: new Date().toISOString() };
+    doc.links = doc.links.map((row) => (row.id === id ? updated : row));
+    await writeDoc(doc);
+    return updated;
+  });
+}
+
+export async function findLiveLink(token: string) {
+  if (!token) return null;
+  const doc = await readDoc();
+  const link = doc.links.find((row) => row.token === token);
+  if (!link || !linkIsLive(link)) return null;
+  return link;
 }

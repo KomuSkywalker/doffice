@@ -2,7 +2,7 @@ import { availableDays } from "@/lib/availability";
 import { nowInZone } from "@/lib/clock";
 import { makeKey, parseKey } from "@/lib/dates";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { readDoc } from "@/lib/store";
+import { findLiveLink, readDoc } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,15 @@ export async function GET(request: Request) {
   if (!allowRequest(request)) return throttledResponse();
 
   const url = new URL(request.url);
+  const token = url.searchParams.get("k") ?? "";
+  const link = await findLiveLink(token);
+  if (!link) {
+    return Response.json(
+      { error: "Bağlantı geçersiz veya süresi dolmuş." },
+      { status: 404 },
+    );
+  }
+
   const now = nowInZone();
   const nowKey = now.key;
   const nowMinutes = now.minutes;

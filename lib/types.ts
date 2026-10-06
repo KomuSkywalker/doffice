@@ -69,12 +69,35 @@ export type Availability = {
   note: string;
 };
 
+export type ShareLink = {
+  id: string;
+  token: string;
+  label: string;
+  createdAt: string;
+  expiresAt: string | null;
+  revokedAt: string | null;
+};
+
 export type StoreDoc = {
   events: DofficeEvent[];
   appointments: Appointment[];
   notifications: AppNotification[];
   availability: Availability;
+  links: ShareLink[];
 };
+
+export const LINK_LIFETIMES: { days: number; label: string }[] = [
+  { days: 0, label: "Süresiz" },
+  { days: 7, label: "7 gün" },
+  { days: 30, label: "30 gün" },
+  { days: 90, label: "90 gün" },
+];
+
+export function linkIsLive(link: ShareLink, now = new Date()) {
+  if (link.revokedAt) return false;
+  if (link.expiresAt && new Date(link.expiresAt) < now) return false;
+  return true;
+}
 
 export const DEFAULT_AVAILABILITY: Availability = {
   days: [0, 1, 2, 3, 4],

@@ -1,7 +1,7 @@
 import { slotIsFree } from "@/lib/availability";
 import { nowInZone } from "@/lib/clock";
 import { allowRequest, throttledResponse } from "@/lib/rate-limit";
-import { createAppointment, readDoc, StorageError } from "@/lib/store";
+import { createAppointment, findLiveLink, readDoc, StorageError } from "@/lib/store";
 import { parseAppointment } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,15 @@ export async function POST(request: Request) {
   const parsed = parseAppointment(body);
   if (!parsed.ok) {
     return Response.json({ error: parsed.error }, { status: 400 });
+  }
+
+  const token = (body as { token?: unknown }).token;
+  const link = await findLiveLink(typeof token === "string" ? token : "");
+  if (!link) {
+    return Response.json(
+      { error: "Bağlantı geçersiz veya süresi dolmuş." },
+      { status: 404 },
+    );
   }
 
   const doc = await readDoc();

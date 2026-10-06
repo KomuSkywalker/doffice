@@ -17,6 +17,7 @@ import type {
   Availability,
   DofficeEvent,
   EventDraft,
+  ShareLink,
 } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
@@ -33,6 +34,7 @@ type Props = {
   initialAvailability: Availability;
   initialNotifications: AppNotification[];
   initialAppointments: Appointment[];
+  initialLinks: ShareLink[];
   serverToday: string;
 };
 
@@ -49,6 +51,7 @@ export function Doffice({
   initialAvailability,
   initialNotifications,
   initialAppointments,
+  initialLinks,
   serverToday,
 }: Props) {
   const today = useSyncExternalStore(
@@ -59,6 +62,7 @@ export function Doffice({
 
   const [events, setEvents] = useState(initialEvents);
   const [availability, setAvailability] = useState(initialAvailability);
+  const [links, setLinks] = useState(initialLinks);
   const [notifications, setNotifications] =
     useState<AppNotification[]>(initialNotifications);
   const [appointments, setAppointments] =
@@ -224,6 +228,37 @@ export function Doffice({
           setToast({ tone: "ok", text: "Çalışma düzeni kaydedildi." });
         },
       }),
+    [runWrite],
+  );
+
+  const createLink = useCallback(
+    (label: string, lifetimeDays: number) =>
+      runWrite({
+        path: "/api/baglanti",
+        init: { method: "POST", body: JSON.stringify({ label, lifetimeDays }) },
+        onDone: (payload) => {
+          const link = (payload as { link: ShareLink }).link;
+          setLinks((current) => [link, ...current]);
+          setToast({ tone: "ok", text: "Bağlantı oluşturuldu." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const revokeLink = useCallback(
+    (id: string) => {
+      void runWrite({
+        path: `/api/baglanti/${id}`,
+        init: { method: "DELETE" },
+        onDone: (payload) => {
+          const link = (payload as { link: ShareLink }).link;
+          setLinks((current) =>
+            current.map((row) => (row.id === id ? link : row)),
+          );
+          setToast({ tone: "ok", text: "Bağlantı kapatıldı." });
+        },
+      });
+    },
     [runWrite],
   );
 
@@ -533,11 +568,14 @@ export function Doffice({
       {settingsOpen ? (
         <SettingsDialog
           availability={availability}
+          links={links}
           total={events.length}
           pending={pending}
           onClose={() => setSettingsOpen(false)}
           onPickFile={() => fileRef.current?.click()}
           onSave={saveAvailability}
+          onCreateLink={createLink}
+          onRevokeLink={revokeLink}
           onLogout={() => void logout()}
         />
       ) : null}

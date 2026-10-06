@@ -2,26 +2,39 @@
 
 import { useEffect, useState } from "react";
 import { WEEKDAY_NAMES, WEEKDAY_SHORT } from "@/lib/dates";
-import { DURATIONS, durationLabel, type Availability } from "@/lib/types";
+import {
+  DURATIONS,
+  LINK_LIFETIMES,
+  durationLabel,
+  linkIsLive,
+  type Availability,
+  type ShareLink,
+} from "@/lib/types";
 import { Button, Field, FieldGroup, inputClass } from "./ui";
 
 type Props = {
   availability: Availability;
+  links: ShareLink[];
   total: number;
   pending: boolean;
   onClose: () => void;
   onPickFile: () => void;
   onSave: (value: Availability) => Promise<boolean>;
+  onCreateLink: (label: string, lifetimeDays: number) => Promise<boolean>;
+  onRevokeLink: (id: string) => void;
   onLogout: () => void;
 };
 
 export function SettingsDialog({
   availability,
+  links,
   total,
   pending,
   onClose,
   onPickFile,
   onSave,
+  onCreateLink,
+  onRevokeLink,
   onLogout,
 }: Props) {
   const [days, setDays] = useState<number[]>(availability.days);
@@ -31,9 +44,11 @@ export function SettingsDialog({
   const [horizonDays, setHorizonDays] = useState(availability.horizonDays);
   const [note, setNote] = useState(availability.note);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [shareUrl] = useState(() =>
-    typeof window === "undefined" ? "/musaitlik" : `${window.location.origin}/musaitlik`,
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkLifetime, setLinkLifetime] = useState(0);
+  const [origin] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.origin,
   );
 
   useEffect(() => {
@@ -72,13 +87,23 @@ export function SettingsDialog({
     setError(ok ? null : "Kaydedilemedi, tekrar dene.");
   };
 
-  const copyLink = async () => {
+  const copyLink = async (link: ShareLink) => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(`${origin}/musaitlik/${link.token}`);
+      setCopiedId(link.id);
+      window.setTimeout(() => setCopiedId(null), 2000);
     } catch {
       setError("Kopyalanamadı, bağlantıyı elle seç.");
+    }
+  };
+
+  const addLink = async () => {
+    const ok = await onCreateLink(linkLabel.trim(), linkLifetime);
+    if (ok) {
+      setLinkLabel("");
+      setError(null);
+    } else {
+      setError("Bağlantı oluşturulamadı.");
     }
   };
 
@@ -109,30 +134,112 @@ export function SettingsDialog({
         </header>
 
         <div className="space-y-6 px-4 py-4">
-          <section className="space-y-2">
+          <section className="space-y-3">
             <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-              Müsaitlik bağlantısı
+              Müsaitlik bağlantıları
             </h3>
             <p className="text-sm font-medium leading-relaxed text-ink-soft">
-              Bu bağlantıyı paylaştığın kişi boş gün ve saatlerini görür,
-              randevu isteyebilir. Kayıtlarının içeriğini göremez.
+              Bağlantıyı sen oluşturursun. Paylaştığın kişi boş gün ve
+              saatlerini görür, kayıtlarının içeriğini göremez. İşin bitince
+              bağlantıyı kapatırsın, o adres bir daha açılmaz.
             </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <code className="nb-thin min-w-0 flex-1 truncate rounded-sm bg-cream px-2.5 py-2 text-xs font-bold">
-                {shareUrl || "/musaitlik"}
-              </code>
-              <Button tone="primary" onClick={() => void copyLink()}>
-                {copied ? "Kopyalandı" : "Kopyala"}
+
+            <div className="nb-thin space-y-3 rounded-md bg-cream px-3 py-3">
+              <Field label="Kime veya ne için" hint="boş olabilir">
+                <input
+                  className={inputClass}
+                  value={linkLabel}
+                  maxLength={60}
+                  placeholder="Örnek: Yılmaz ailesi"
+                  onChange={(event) => setLinkLabel(event.target.value)}
+                />
+              </Field>
+              <Field label="Geçerlilik">
+                <select
+                  className={inputClass}
+                  value={linkLifetime}
+                  onChange={(event) => setLinkLifetime(Number(event.target.value))}
+                >
+                  {LINK_LIFETIMES.map((option) => (
+                    <option key={option.days} value={option.days}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Button tone="primary" disabled={pending} onClick={() => void addLink()}>
+                Bağlantı oluştur
               </Button>
-              <a
-                href="/musaitlik"
-                target="_blank"
-                rel="noreferrer"
-                className="press-sm nb inline-flex rounded-md bg-card px-3.5 py-2 text-sm font-bold shadow-nb-sm"
-              >
-                Aç
-              </a>
             </div>
+
+            {links.length === 0 ? (
+              <p className="nb-thin rounded-md border-dashed bg-tint/60 px-3 py-5 text-center text-sm font-bold">
+                Henüz bağlantı yok. Yukarıdan oluştur.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {links.map((link) => {
+                  const live = linkIsLive(link);
+                  return (
+                    <li
+                      key={link.id}
+                      className="nb-thin rounded-md bg-card px-3 py-2.5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold">
+                            {link.label}
+                          </span>
+                          <span className="block text-[11px] font-medium text-muted">
+                            {live
+                              ? link.expiresAt
+                                ? `Son gün ${link.expiresAt.slice(0, 10)}`
+                                : "Süresiz"
+                              : link.revokedAt
+                                ? "Kapatıldı"
+                                : "Süresi doldu"}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 gap-2">
+                          {live ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => void copyLink(link)}
+                                className="chip-pop nb-thin rounded-sm bg-gold px-2.5 py-1 text-xs font-bold"
+                              >
+                                {copiedId === link.id ? "Kopyalandı" : "Kopyala"}
+                              </button>
+                              <a
+                                href={`/musaitlik/${link.token}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold"
+                              >
+                                Aç
+                              </a>
+                              <button
+                                type="button"
+                                disabled={pending}
+                                onClick={() => onRevokeLink(link.id)}
+                                className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-xs font-bold hover:bg-coral"
+                              >
+                                Kapat
+                              </button>
+                            </>
+                          ) : null}
+                        </span>
+                      </div>
+                      {live ? (
+                        <code className="mt-2 block truncate text-[11px] font-bold text-muted">
+                          {origin}/musaitlik/{link.token}
+                        </code>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </section>
 
           <section className="space-y-3 border-t-2 border-ink/10 pt-4">

@@ -30,6 +30,7 @@ export default async function HomePage() {
       initialAvailability={doc.availability}
       initialNotifications={doc.notifications}
       initialAppointments={doc.appointments}
+      initialLinks={doc.links}
       serverToday={nowInZone().key}
     />
   );

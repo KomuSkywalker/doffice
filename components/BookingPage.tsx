@@ -39,7 +39,13 @@ function shiftMonthKey(month: string, delta: number) {
   return `${stamp.getUTCFullYear()}-${String(stamp.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-export function BookingPage({ initial }: { initial: Payload }) {
+export function BookingPage({
+  initial,
+  token,
+}: {
+  initial: Payload;
+  token: string;
+}) {
   const [data, setData] = useState(initial);
   const [month, setMonth] = useState(initial.month);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -53,21 +59,25 @@ export function BookingPage({ initial }: { initial: Payload }) {
   const [pending, setPending] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const load = useCallback(async (target: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/musaitlik?ay=${target}`, {
-        cache: "no-store",
-      });
-      if (!response.ok) return;
-      const payload = (await response.json()) as Payload;
-      setData(payload);
-      setSelectedDay(null);
-      setSelectedSlot(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (target: string) => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/musaitlik?ay=${target}&k=${encodeURIComponent(token)}`,
+          { cache: "no-store" },
+        );
+        if (!response.ok) return;
+        const payload = (await response.json()) as Payload;
+        setData(payload);
+        setSelectedDay(null);
+        setSelectedSlot(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token],
+  );
 
   const goMonth = useCallback(
     (delta: number) => {
@@ -96,6 +106,7 @@ export function BookingPage({ initial }: { initial: Payload }) {
           contact,
           note,
           sirket: trap,
+          token,
         }),
       });
       const payload = (await response.json().catch(() => ({}))) as {

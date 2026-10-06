@@ -50,7 +50,7 @@ altta ayarlar durur.
   özeti, etiket dağılımı ve sıradaki kayıtlar.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
-- **Ayarlar**: müsaitlik bağlantısı, çalışma düzeni, yedek işlemleri ve
+- **Ayarlar**: müsaitlik bağlantıları, çalışma düzeni, yedek işlemleri ve
   çıkış. Rayın en altındaki dişli açar.
 
 Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
@@ -60,8 +60,15 @@ ile paylaşımlarda kullanılır.
 
 ## Müsaitlik ve randevu
 
-`/musaitlik` sayfası şifresizdir, paylaşılmak için vardır. Ziyaretçi o
-aydaki boş gün ve saatleri görür, kayıtların içeriğini görmez.
+Müsaitlik bağlantısını panelden sen oluşturursun. Ayarlar penceresindeki
+bölümde etiket (kime gönderildiği) ve geçerlilik süresi seçip bağlantı
+üretirsin, listeden kopyalar, işin bitince kapatırsın. Kapatılan veya
+süresi dolan bağlantı bir daha açılmaz.
+
+Her bağlantının adresi `/musaitlik/<token>` biçimindedir ve token rastgele
+üretilir. Tokensiz `/musaitlik` adresi hiçbir şey göstermez, yani adresi
+tahmin eden biri takvimine bakamaz. Ziyaretçi o aydaki boş gün ve
+saatleri görür, kayıtların içeriğini görmez.
 
 Boş saat hesabı şöyle çalışır: çalışma günleri ve saatleri ayarlardan
 gelir, aralık randevu süresine bölünür, üstüne denk gelen kayıtlar ve
