@@ -57,6 +57,47 @@ export type RoutineDraft = {
   active: boolean;
 };
 
+export type ProjectStatus = "aktif" | "beklemede" | "bitti";
+
+export type ProjectFile = {
+  id: string;
+  label: string;
+  url: string;
+};
+
+export type Project = {
+  id: string;
+  name: string;
+  note: string | null;
+  status: ProjectStatus;
+  color: string;
+  files: ProjectFile[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectDraft = {
+  name: string;
+  note: string | null;
+  status: ProjectStatus;
+  color: string;
+  files: ProjectFile[];
+};
+
+export type Shortcut = {
+  id: string;
+  label: string;
+  url: string;
+  color: string;
+  createdAt: string;
+};
+
+export type ShortcutDraft = {
+  label: string;
+  url: string;
+  color: string;
+};
+
 export type AppointmentStatus = "bekliyor" | "onaylandi" | "reddedildi";
 
 export type Appointment = {
@@ -96,6 +137,8 @@ export type ShareLink = {
 export type StoreDoc = {
   events: DofficeEvent[];
   routines: Routine[];
+  projects: Project[];
+  shortcuts: Shortcut[];
   appointments: Appointment[];
   notifications: AppNotification[];
   links: ShareLink[];
@@ -123,6 +166,26 @@ export const DEFAULT_ROUTINE_END = "17:00";
 export const DURATIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 
 export const DEFAULT_COLOR = "#eec14b";
+
+export const PROJECT_STATUSES: { id: ProjectStatus; label: string }[] = [
+  { id: "aktif", label: "Aktif" },
+  { id: "beklemede", label: "Beklemede" },
+  { id: "bitti", label: "Bitti" },
+];
+
+export const PROJECT_STATUS_IDS = PROJECT_STATUSES.map((row) => row.id);
+
+export function statusLabel(id: ProjectStatus) {
+  return PROJECT_STATUSES.find((row) => row.id === id)?.label ?? "Aktif";
+}
+
+export function siteName(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 
 export const LABEL_LIMIT = 24;
 

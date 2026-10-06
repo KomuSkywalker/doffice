@@ -71,6 +71,53 @@ export function Chip({ label, color }: { label: string | null; color: string }) 
   );
 }
 
+export function ColorRow({
+  color,
+  onColor,
+  size = "h-7 w-7",
+}: {
+  color: string;
+  onColor: (value: string) => void;
+  size?: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {PALETTE.map((option) => {
+        const active = option.color === color.toLowerCase();
+        return (
+          <button
+            key={option.color}
+            type="button"
+            title={option.name}
+            aria-label={option.name}
+            aria-pressed={active}
+            onClick={() => onColor(option.color)}
+            className={`chip-pop ${size} rounded-sm border-2 border-ink ${
+              active ? "shadow-nb-xs" : "opacity-55 hover:opacity-100"
+            }`}
+            style={{ backgroundColor: option.color }}
+          />
+        );
+      })}
+      <label className="nb-thin chip-pop flex cursor-pointer items-center gap-1.5 rounded-sm bg-card px-2 py-1 text-[11px] font-bold">
+        <span
+          aria-hidden
+          className="h-4 w-4 rounded-sm border-2 border-ink"
+          style={{ backgroundColor: color }}
+        />
+        Özel renk
+        <input
+          type="color"
+          value={color}
+          aria-label="Özel renk"
+          className="h-0 w-0 opacity-0"
+          onChange={(event) => onColor(event.target.value)}
+        />
+      </label>
+    </div>
+  );
+}
+
 export function MarkerPicker({
   label,
   color,
@@ -91,40 +138,7 @@ export function MarkerPicker({
         placeholder="Etiket adı, boş olabilir"
         onChange={(event) => onLabel(event.target.value)}
       />
-      <div className="flex flex-wrap items-center gap-2">
-        {PALETTE.map((option) => {
-          const active = option.color === color.toLowerCase();
-          return (
-            <button
-              key={option.color}
-              type="button"
-              title={option.name}
-              aria-label={option.name}
-              aria-pressed={active}
-              onClick={() => onColor(option.color)}
-              className={`chip-pop h-7 w-7 rounded-sm border-2 border-ink ${
-                active ? "shadow-nb-xs" : "opacity-55 hover:opacity-100"
-              }`}
-              style={{ backgroundColor: option.color }}
-            />
-          );
-        })}
-        <label className="nb-thin chip-pop flex cursor-pointer items-center gap-1.5 rounded-sm bg-card px-2 py-1 text-[11px] font-bold">
-          <span
-            aria-hidden
-            className="h-4 w-4 rounded-sm border-2 border-ink"
-            style={{ backgroundColor: color }}
-          />
-          Özel renk
-          <input
-            type="color"
-            value={color}
-            aria-label="Özel renk"
-            className="h-0 w-0 opacity-0"
-            onChange={(event) => onColor(event.target.value)}
-          />
-        </label>
-      </div>
+      <ColorRow color={color} onColor={onColor} />
     </div>
   );
 }

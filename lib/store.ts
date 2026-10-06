@@ -13,6 +13,10 @@ import {
   type AppNotification,
   type DofficeEvent,
   type EventDraft,
+  type Project,
+  type ProjectDraft,
+  type Shortcut,
+  type ShortcutDraft,
   type Routine,
   type RoutineDraft,
   type ShareLink,
@@ -41,6 +45,8 @@ function emptyDoc(): StoreDoc {
   return {
     events: [],
     routines: [],
+    projects: [],
+    shortcuts: [],
     appointments: [],
     notifications: [],
     links: [],
@@ -128,6 +134,21 @@ function normalizeDoc(parsed: unknown): StoreDoc {
     doc.routines = row.routines
       .filter(isRoutineShape)
       .map((item) => normalizeRoutine(item as unknown as Record<string, unknown>));
+  }
+  if (Array.isArray(row.projects)) {
+    doc.projects = (row.projects as Project[])
+      .filter((item) => item && typeof item.id === "string")
+      .map((item) => ({
+        ...item,
+        note: typeof item.note === "string" ? item.note : null,
+        color: normalizeColor(item.color),
+        files: Array.isArray(item.files) ? item.files : [],
+      }));
+  }
+  if (Array.isArray(row.shortcuts)) {
+    doc.shortcuts = (row.shortcuts as Shortcut[])
+      .filter((item) => item && typeof item.url === "string")
+      .map((item) => ({ ...item, color: normalizeColor(item.color) }));
   }
   if (Array.isArray(row.appointments)) {
     doc.appointments = row.appointments as Appointment[];
@@ -447,6 +468,94 @@ export function markNotificationsRead() {
     );
     await writeDoc(doc);
     return doc.notifications;
+  });
+}
+
+export async function listProjects(): Promise<Project[]> {
+  return (await readDoc()).projects;
+}
+
+export function createProject(draft: ProjectDraft) {
+  return mutate(async (doc) => {
+    const now = new Date().toISOString();
+    const project: Project = {
+      id: randomUUID(),
+      name: draft.name,
+      note: draft.note,
+      status: draft.status,
+      color: normalizeColor(draft.color),
+      files: draft.files.map((file) => ({
+        id: file.id || randomUUID(),
+        label: file.label,
+        url: file.url,
+      })),
+      createdAt: now,
+      updatedAt: now,
+    };
+    doc.projects = [project, ...doc.projects];
+    await writeDoc(doc);
+    return project;
+  });
+}
+
+export function updateProject(id: string, draft: Partial<ProjectDraft>) {
+  return mutate(async (doc) => {
+    const current = doc.projects.find((row) => row.id === id);
+    if (!current) return null;
+    const updated: Project = {
+      ...current,
+      ...draft,
+      note: draft.note === undefined ? current.note : (draft.note ?? null),
+      color: draft.color ? normalizeColor(draft.color) : current.color,
+      files: (draft.files ?? current.files).map((file) => ({
+        id: file.id || randomUUID(),
+        label: file.label,
+        url: file.url,
+      })),
+      updatedAt: new Date().toISOString(),
+    };
+    doc.projects = doc.projects.map((row) => (row.id === id ? updated : row));
+    await writeDoc(doc);
+    return updated;
+  });
+}
+
+export function deleteProject(id: string) {
+  return mutate(async (doc) => {
+    const exists = doc.projects.some((row) => row.id === id);
+    if (!exists) return false;
+    doc.projects = doc.projects.filter((row) => row.id !== id);
+    await writeDoc(doc);
+    return true;
+  });
+}
+
+export async function listShortcuts(): Promise<Shortcut[]> {
+  return (await readDoc()).shortcuts;
+}
+
+export function createShortcut(draft: ShortcutDraft) {
+  return mutate(async (doc) => {
+    const shortcut: Shortcut = {
+      id: randomUUID(),
+      label: draft.label,
+      url: draft.url,
+      color: normalizeColor(draft.color),
+      createdAt: new Date().toISOString(),
+    };
+    doc.shortcuts = [...doc.shortcuts, shortcut];
+    await writeDoc(doc);
+    return shortcut;
+  });
+}
+
+export function deleteShortcut(id: string) {
+  return mutate(async (doc) => {
+    const exists = doc.shortcuts.some((row) => row.id === id);
+    if (!exists) return false;
+    doc.shortcuts = doc.shortcuts.filter((row) => row.id !== id);
+    await writeDoc(doc);
+    return true;
   });
 }
 

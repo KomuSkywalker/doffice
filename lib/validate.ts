@@ -2,14 +2,20 @@ import { isValidKey, isValidTime } from "./dates";
 import {
   DURATIONS,
   LABEL_LIMIT,
+  PROJECT_STATUS_IDS,
   REPEAT_IDS,
   isHexColor,
   normalizeColor,
+  siteName,
   type DofficeEvent,
   type EventDraft,
+  type ProjectDraft,
+  type ProjectFile,
+  type ProjectStatus,
   type Repeat,
   type Routine,
   type RoutineDraft,
+  type ShortcutDraft,
 } from "./types";
 
 const TITLE_LIMIT = 160;
@@ -301,4 +307,132 @@ export function parseRoutine(input: unknown, partial: boolean): RoutineResult {
   }
 
   return { ok: true, value: draft as RoutineDraft };
+}
+
+const NAME_LIMIT = 80;
+const URL_LIMIT = 500;
+const PROJECT_NOTE_LIMIT = 600;
+const FILE_LIMIT = 20;
+
+export function safeUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (raw.length === 0 || raw.length > URL_LIMIT) return null;
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(withScheme);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (parsed.hostname.length === 0) return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+export type ProjectResult =
+  | { ok: true; value: ProjectDraft }
+  | { ok: false; error: string };
+
+export function parseProject(input: unknown, partial: boolean): ProjectResult {
+  if (typeof input !== "object" || input === null) {
+    return { ok: false, error: "Geçersiz istek gövdesi." };
+  }
+  const body = input as Record<string, unknown>;
+  const draft: Partial<ProjectDraft> = {};
+
+  if (body.name !== undefined || !partial) {
+    const name = asTrimmed(body.name);
+    if (name.length === 0) {
+      return { ok: false, error: "Proje adı boş olamaz." };
+    }
+    if (name.length > NAME_LIMIT) {
+      return { ok: false, error: `Proje adı en fazla ${NAME_LIMIT} karakter.` };
+    }
+    draft.name = name;
+  }
+
+  if (body.note !== undefined || !partial) {
+    const note = body.note === null ? "" : asTrimmed(body.note);
+    if (note.length > PROJECT_NOTE_LIMIT) {
+      return { ok: false, error: `Not en fazla ${PROJECT_NOTE_LIMIT} karakter.` };
+    }
+    draft.note = note.length === 0 ? null : note;
+  }
+
+  if (body.status !== undefined || !partial) {
+    const status = body.status ?? "aktif";
+    if (!PROJECT_STATUS_IDS.includes(status as ProjectStatus)) {
+      return { ok: false, error: "Bilinmeyen durum." };
+    }
+    draft.status = status as ProjectStatus;
+  }
+
+  if (body.color !== undefined || !partial) {
+    const color = body.color ?? undefined;
+    if (color !== undefined && !isHexColor(color)) {
+      return { ok: false, error: "Renk #rrggbb biçiminde olmalı." };
+    }
+    draft.color = normalizeColor(color);
+  }
+
+  if (body.files !== undefined || !partial) {
+    const rows = Array.isArray(body.files) ? body.files : [];
+    if (rows.length > FILE_LIMIT) {
+      return { ok: false, error: `En fazla ${FILE_LIMIT} bağlantı eklenebilir.` };
+    }
+    const files: ProjectFile[] = [];
+    for (const row of rows) {
+      const item = row as Record<string, unknown>;
+      const url = safeUrl(item.url);
+      if (!url) {
+        return { ok: false, error: "Bağlantı adresi geçersiz." };
+      }
+      const label = asTrimmed(item.label);
+      if (label.length > NAME_LIMIT) {
+        return { ok: false, error: `Bağlantı adı en fazla ${NAME_LIMIT} karakter.` };
+      }
+      files.push({
+        id: typeof item.id === "string" && item.id.length > 0 ? item.id : "",
+        label: label.length === 0 ? siteName(url) : label,
+        url,
+      });
+    }
+    draft.files = files;
+  }
+
+  return { ok: true, value: draft as ProjectDraft };
+}
+
+export type ShortcutResult =
+  | { ok: true; value: ShortcutDraft }
+  | { ok: false; error: string };
+
+export function parseShortcut(input: unknown): ShortcutResult {
+  if (typeof input !== "object" || input === null) {
+    return { ok: false, error: "Geçersiz istek gövdesi." };
+  }
+  const body = input as Record<string, unknown>;
+
+  const url = safeUrl(body.url);
+  if (!url) {
+    return { ok: false, error: "Adres geçersiz, http ile başlamalı." };
+  }
+
+  const label = asTrimmed(body.label);
+  if (label.length > NAME_LIMIT) {
+    return { ok: false, error: `Ad en fazla ${NAME_LIMIT} karakter.` };
+  }
+
+  if (body.color !== undefined && !isHexColor(body.color)) {
+    return { ok: false, error: "Renk #rrggbb biçiminde olmalı." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      label: label.length === 0 ? siteName(url) : label,
+      url,
+      color: normalizeColor(body.color),
+    },
+  };
 }

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Logo } from "./Logo";
 
-export type ViewId = "panel" | "ay" | "yil" | "bildirim";
+export type ViewId = "panel" | "ay" | "yil" | "proje" | "bildirim";
 
 type Props = {
   view: ViewId;
@@ -53,7 +53,7 @@ const ITEMS: {
   {
     id: "ay",
     label: "Ajanda",
-    accent: "bg-gold",
+    accent: "bg-sky",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect
@@ -80,7 +80,7 @@ const ITEMS: {
   {
     id: "bildirim",
     label: "Bildirimler",
-    accent: "bg-gold",
+    accent: "bg-coral",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <path
@@ -101,9 +101,25 @@ const ITEMS: {
     ),
   },
   {
+    id: "proje",
+    label: "Projeler",
+    accent: "bg-lilac",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+        <path
+          d="M3.5 7.5a2 2 0 0 1 2-2h3.2l1.8 2.2h8a2 2 0 0 1 2 2v8.3a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.1"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
     id: "yil",
     label: "Almanak",
-    accent: "bg-gold",
+    accent: "bg-mint",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect x="3.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />

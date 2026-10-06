@@ -39,10 +39,13 @@ otuz gün geçerli olur. Çıkış, ayarlar penceresindeki düğmeyle yapılır.
 Sol kenarda ince bir ikon rayı var. İkonun üzerine gelince adı yazar, en
 altta ayarlar durur.
 
-- **Ana Sayfa**: bugün, geciken, yedi gün ve ay sayıları. Bugünün
-  programı, gecikenler listesi ve yaklaşan kayıtlar.
+- **Ana Sayfa**: bugün, geciken, yedi gün ve ay sayıları. Ajanda tarafında
+  yalnızca bugünün programı durur. Yanında Gündem (açık projeler) ve Hızlı
+  erişim (sık kullanılan siteler) panelleri vardır.
 - **Ajanda**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
   etiketleriyle görünür.
+- **Projeler**: dosyalar ve projeler. Her projenin adı, durumu (aktif,
+  beklemede, bitti), rengi, notu ve bağlantı listesi olur.
 - **Bildirimler**: gelen randevu talepleri. Onaylanan talep takvime kayıt
   olarak düşer, reddedilen düşmez. Okunmamış talep sayısı ikon üstünde
   rozet olarak görünür.
@@ -75,6 +78,24 @@ kapatır. Gün panelinde düzenlenemez, yönetimi Ayarlar bölümündedir.
 
 Almanak (yıl) görünümünde rutinler işaretlenmez, çünkü günlük bir rutin
 yılın bütün günlerini doldurup işareti anlamsız kılardı.
+
+## Projeler ve kısayollar
+
+Projeler sekmesinde üzerinde çalıştığın dosyaları tutarsın. Bir projeye ad,
+durum, renk, not ve istediğin kadar bağlantı (Drive klasörü, tapu kaydı,
+ilan sayfası) eklersin. Durumu `bitti` olmayan projeler Ana Sayfa'daki
+**Gündem** panelinde listelenir, en son güncellenen üstte durur.
+
+Ana Sayfa'daki **Hızlı erişim** paneline sık kullandığın siteleri
+eklersin. Adres `http` ile başlamıyorsa başına `https://` eklenir, başka
+şema (`javascript:` gibi) kabul edilmez. Kısayollar yeni sekmede açılır.
+
+## Arama
+
+Üstteki arama kutusu tüm sistemde arar: kayıtlar, rutinler, projeler,
+proje bağlantıları ve kısayollar. Sonuç satırında ne olduğu rozetle
+yazar. Kayıt seçilince o gün açılır, proje seçilince Projeler sekmesine
+geçilir, bağlantı ve kısayol yeni sekmede açılır.
 
 ## Müsaitlik ve randevu
 
@@ -129,6 +150,7 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 | p | Ana Sayfa |
 | a | Ajanda |
 | y | Almanak |
+| r | Projeler |
 | t | Bugüne döner |
 | n | Yeni kayıt |
 | Ok tuşları | Ajandada gün seçimini gezdirir |
@@ -138,7 +160,7 @@ Yıllık tekrarda 29 Şubat, artık olmayan yıllarda 28 Şubat'ta görünür.
 
 ## Veri ve yedek
 
-- Kayıtlar `data/events.json` içinde tutulur ve `.gitignore` ile repo
+- Kayıtlar, rutinler, projeler ve kısayollar `data/events.json` içinde tutulur ve `.gitignore` ile repo
   dışında bırakılır, kişisel veri GitHub'a gitmez.
 - `data/events.sample.json` repoda durur, ilk kurulumda örnek içerik verir.
 - Ayarlardaki **Yedek al** kayıtları ve rutinleri JSON indirir.

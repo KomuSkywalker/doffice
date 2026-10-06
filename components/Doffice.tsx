@@ -9,7 +9,8 @@ import {
   useSyncExternalStore,
 } from "react";
 import { makeKey, monthCells, parseKey, shiftKey, shiftMonth } from "@/lib/dates";
-import { indexRange, searchEvents } from "@/lib/occurrences";
+import { indexRange } from "@/lib/occurrences";
+import { searchAll, type SearchHit } from "@/lib/search";
 import { dayItems, indexRangeWithRoutines } from "@/lib/routines";
 import { subscribeToday, todaySnapshot } from "@/lib/client-clock";
 import type {
@@ -17,14 +18,19 @@ import type {
   AppNotification,
   DofficeEvent,
   EventDraft,
+  Project,
+  ProjectDraft,
   Routine,
   RoutineDraft,
   ShareLink,
+  Shortcut,
+  ShortcutDraft,
 } from "@/lib/types";
 import { DashboardView } from "./DashboardView";
 import { DayPanel } from "./DayPanel";
 import { MonthView } from "./MonthView";
 import { NotificationsView } from "./NotificationsView";
+import { ProjectsView } from "./ProjectsView";
 import { SettingsDialog } from "./SettingsDialog";
 import { Sidebar, type ViewId } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -34,6 +40,8 @@ import { YearView } from "./YearView";
 type Props = {
   initialEvents: DofficeEvent[];
   initialRoutines: Routine[];
+  initialProjects: Project[];
+  initialShortcuts: Shortcut[];
   initialNotifications: AppNotification[];
   initialAppointments: Appointment[];
   initialLinks: ShareLink[];
@@ -51,6 +59,8 @@ type WriteCall = {
 export function Doffice({
   initialEvents,
   initialRoutines,
+  initialProjects,
+  initialShortcuts,
   initialNotifications,
   initialAppointments,
   initialLinks,
@@ -64,6 +74,8 @@ export function Doffice({
 
   const [events, setEvents] = useState(initialEvents);
   const [routines, setRoutines] = useState(initialRoutines);
+  const [projects, setProjects] = useState(initialProjects);
+  const [shortcuts, setShortcuts] = useState(initialShortcuts);
   const [links, setLinks] = useState(initialLinks);
   const [notifications, setNotifications] =
     useState<AppNotification[]>(initialNotifications);
@@ -301,6 +313,76 @@ export function Doffice({
     [runWrite],
   );
 
+  const createProject = useCallback(
+    (draft: ProjectDraft) =>
+      runWrite({
+        path: "/api/proje",
+        init: { method: "POST", body: JSON.stringify(draft) },
+        onDone: (payload) => {
+          const project = (payload as { project: Project }).project;
+          setProjects((current) => [project, ...current]);
+          setToast({ tone: "ok", text: "Proje oluşturuldu." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const updateProject = useCallback(
+    (id: string, draft: Partial<ProjectDraft>) =>
+      runWrite({
+        path: `/api/proje/${id}`,
+        init: { method: "PATCH", body: JSON.stringify(draft) },
+        onDone: (payload) => {
+          const project = (payload as { project: Project }).project;
+          setProjects((current) =>
+            current.map((row) => (row.id === id ? project : row)),
+          );
+          setToast({ tone: "ok", text: "Proje güncellendi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const removeProject = useCallback(
+    (id: string) =>
+      runWrite({
+        path: `/api/proje/${id}`,
+        init: { method: "DELETE" },
+        onDone: () => {
+          setProjects((current) => current.filter((row) => row.id !== id));
+          setToast({ tone: "ok", text: "Proje silindi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const createShortcut = useCallback(
+    (draft: ShortcutDraft) =>
+      runWrite({
+        path: "/api/kisayol",
+        init: { method: "POST", body: JSON.stringify(draft) },
+        onDone: (payload) => {
+          const shortcut = (payload as { shortcut: Shortcut }).shortcut;
+          setShortcuts((current) => [...current, shortcut]);
+          setToast({ tone: "ok", text: "Kısayol eklendi." });
+        },
+      }),
+    [runWrite],
+  );
+
+  const removeShortcut = useCallback(
+    (id: string) =>
+      runWrite({
+        path: `/api/kisayol/${id}`,
+        init: { method: "DELETE" },
+        onDone: () => {
+          setShortcuts((current) => current.filter((row) => row.id !== id));
+          setToast({ tone: "ok", text: "Kısayol silindi." });
+        },
+      }),
+    [runWrite],
+  );
+
   const decideAppointment = useCallback(
     (id: string, approve: boolean) => {
       void runWrite({
@@ -361,7 +443,10 @@ export function Doffice({
     );
   }, [events, routines, view, cursor]);
 
-  const results = useMemo(() => searchEvents(events, query), [events, query]);
+  const results = useMemo(
+    () => searchAll({ events, routines, projects, shortcuts }, query),
+    [events, routines, projects, shortcuts, query],
+  );
   const dayEvents = useMemo(
     () => dayItems(events, routines, selected),
     [events, routines, selected],
@@ -374,6 +459,29 @@ export function Doffice({
     setPanelOpen(true);
     setQuery("");
   }, []);
+
+  const pickResult = useCallback(
+    (hit: SearchHit) => {
+      if (hit.url) {
+        window.open(hit.url, "_blank", "noopener,noreferrer");
+        return;
+      }
+      if (hit.kind === "kayit" && hit.date) {
+        openDay(hit.date);
+        return;
+      }
+      if (hit.kind === "proje") {
+        setView("proje");
+        setQuery("");
+        return;
+      }
+      if (hit.kind === "rutin") {
+        setSettingsOpen(true);
+        setQuery("");
+      }
+    },
+    [openDay],
+  );
 
   const goToday = useCallback(() => {
     const parsed = parseKey(today);
@@ -455,6 +563,7 @@ export function Doffice({
       if (event.key === "p") pickView("panel");
       else if (event.key === "a") pickView("ay");
       else if (event.key === "y") pickView("yil");
+      else if (event.key === "r") pickView("proje");
       else if (event.key === "b") pickView("bildirim");
       else if (event.key === "t") goToday();
       else if (event.key === "n") {
@@ -531,7 +640,7 @@ export function Doffice({
             onNext={() => step(1)}
             onToday={goToday}
             onQueryChange={setQuery}
-            onPickResult={openDay}
+            onPickResult={pickResult}
             onNew={startNewRecord}
           />
 
@@ -540,9 +649,15 @@ export function Doffice({
               <DashboardView
                 events={events}
                 routines={routines}
+                projects={projects}
+                shortcuts={shortcuts}
                 today={today}
+                pending={pending}
                 onSelect={openDay}
                 onToggleDone={toggleDone}
+                onOpenProjects={() => pickView("proje")}
+                onCreateShortcut={createShortcut}
+                onDeleteShortcut={removeShortcut}
               />
             ) : null}
 
@@ -577,6 +692,16 @@ export function Doffice({
                   onSelect={openDay}
                 />
               </div>
+            ) : null}
+
+            {view === "proje" ? (
+              <ProjectsView
+                projects={projects}
+                pending={pending}
+                onCreate={createProject}
+                onUpdate={updateProject}
+                onDelete={removeProject}
+              />
             ) : null}
 
             {view === "bildirim" ? (
