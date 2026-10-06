@@ -44,3 +44,4 @@ next-env.d.ts
 # Almanak verisi kişiseldir, repoya girmez
 data/events.json
 data/events.json.*.tmp
+.env*.local

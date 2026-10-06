@@ -110,6 +110,10 @@ Anahtar tarayıcıda yalnızca sekme oturumu boyunca saklanır.
 
 ## Yayın
 
+Canlı adres: https://doffice-navy.vercel.app
+
+Depo GitHub'a bağlıdır, `main` dalına her gönderim otomatik dağıtılır.
+
 Depolama iki sürücülüdür ve ortama göre kendisi seçer.
 
 - **Yerel çalışmada** kayıtlar `data/events.json` dosyasına yazılır.
@@ -123,8 +127,11 @@ Blob bağlı değilse site açılır ve örnek kayıtları gösterir, ancak yazm
 denemeleri "kalıcı depolama bağlı değil" hatası döner.
 
 Yayına çıkarken `DOFFICE_KEY` tanımlamak gerekir, yoksa adresi bilen
-herkes kayıt ekleyip silebilir. Anahtar yalnızca yazmayı korur, okumayı
-korumaz.
+herkes kayıt ekleyip silebilir. Canlı kurulumda bu anahtar tanımlıdır,
+panelde ayarlar penceresinden girilir ve sekme oturumu boyunca saklanır.
+
+Anahtar yalnızca yazmayı korur. Adresi bilen biri kayıtları okuyabilir,
+okuma koruması istenirse giriş ekranı eklenmelidir.
 
 ## Mock içerik
 
