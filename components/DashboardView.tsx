@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MONTH_NAMES, formatLong, makeKey, parseKey } from "@/lib/dates";
-import { indexRange, upcoming } from "@/lib/occurrences";
+import { formatLong } from "@/lib/dates";
 import { dayItems, itemSpan } from "@/lib/routines";
 import {
   DEFAULT_COLOR,
@@ -29,28 +28,6 @@ type Props = {
   onDeleteShortcut: (id: string) => Promise<boolean>;
 };
 
-function Tile({
-  label,
-  value,
-  accent,
-  delay,
-}: {
-  label: string;
-  value: number;
-  accent: string;
-  delay: number;
-}) {
-  return (
-    <div
-      style={{ animationDelay: `${delay}ms` }}
-      className={`lift anim-pop nb rounded-lg px-4 py-3.5 shadow-nb ${accent}`}
-    >
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em]">{label}</p>
-      <p className="tabular mt-1 text-3xl font-bold leading-none">{value}</p>
-    </div>
-  );
-}
-
 export function DashboardView({
   events,
   routines,
@@ -71,23 +48,6 @@ export function DashboardView({
   const [error, setError] = useState<string | null>(null);
 
   const todayEvents = dayItems(events, routines, today);
-  const overdue = events.filter(
-    (event) => event.repeat === "yok" && !event.done && event.date < today,
-  );
-
-  const parts = parseKey(today);
-  const monthIndex = indexRange(
-    events,
-    makeKey(parts.year, parts.month, 1),
-    makeKey(parts.year, parts.month, 31),
-  );
-  let monthCount = 0;
-  for (const dayEvents of monthIndex.values()) monthCount += dayEvents.length;
-
-  const weekCount = upcoming(events, today, 7).reduce(
-    (total, day) => total + day.events.length,
-    0,
-  );
 
   const agenda = projects
     .filter((project) => project.status !== "bitti")
@@ -115,18 +75,6 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tile label="Bugün" value={todayEvents.length} accent="bg-gold" delay={0} />
-        <Tile label="Geciken" value={overdue.length} accent="bg-coral" delay={60} />
-        <Tile label="Yedi günde" value={weekCount} accent="bg-sky" delay={120} />
-        <Tile
-          label={`${MONTH_NAMES[parts.month]} ayı`}
-          value={monthCount}
-          accent="bg-mint"
-          delay={180}
-        />
-      </div>
-
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card
           title="Bugünün programı"
@@ -318,31 +266,27 @@ export function DashboardView({
                   Kısayol yok.
                 </p>
               ) : (
-                <ul className="grid gap-2 sm:grid-cols-2">
+                <ul className="flex flex-wrap gap-2">
                   {shortcuts.map((shortcut, position) => (
                     <li
                       key={shortcut.id}
-                      style={{ animationDelay: `${position * 30}ms` }}
-                      className="anim-rise relative"
+                      style={{ animationDelay: `${position * 25}ms` }}
+                      className="anim-rise flex items-stretch"
                     >
                       <a
                         href={shortcut.url}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="press-sm nb flex items-center gap-2 rounded-md bg-card py-2 pl-2.5 pr-7 shadow-nb-sm"
+                        title={siteName(shortcut.url)}
+                        className="press-sm nb-thin flex items-center gap-2 rounded-l-sm bg-card py-1.5 pl-2 pr-2.5"
                       >
                         <span
                           aria-hidden
-                          className="h-6 w-1.5 shrink-0 rounded-sm border-2 border-ink"
+                          className="h-3.5 w-3.5 shrink-0 rounded-sm border-2 border-ink"
                           style={{ backgroundColor: shortcut.color }}
                         />
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-bold">
-                            {shortcut.label}
-                          </span>
-                          <span className="block truncate text-[11px] font-medium text-muted">
-                            {siteName(shortcut.url)}
-                          </span>
+                        <span className="max-w-[150px] truncate text-sm font-bold">
+                          {shortcut.label}
                         </span>
                       </a>
                       <button
@@ -350,7 +294,7 @@ export function DashboardView({
                         disabled={pending}
                         aria-label={`${shortcut.label} kısayolunu sil`}
                         onClick={() => void onDeleteShortcut(shortcut.id)}
-                        className="chip-pop absolute right-1.5 top-1.5 rounded-sm px-1 text-xs font-bold text-muted hover:bg-coral hover:text-ink"
+                        className="nb-thin -ml-[2px] rounded-r-sm bg-card px-1.5 text-xs font-bold text-muted hover:bg-coral hover:text-ink"
                       >
                         ×
                       </button>
