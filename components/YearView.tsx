@@ -2,7 +2,6 @@
 
 import { MONTH_NAMES, WEEKDAY_SHORT, monthCells } from "@/lib/dates";
 import type { DofficeEvent } from "@/lib/types";
-import { tagOf } from "@/lib/types";
 
 type Props = {
   year: number;
@@ -82,7 +81,6 @@ export function YearView({
                 const dayEvents = index.get(cell.key) ?? [];
                 const isToday = cell.key === today;
                 const isSelected = cell.key === selected;
-                const marker = dayEvents[0];
 
                 return (
                   <button
@@ -104,13 +102,6 @@ export function YearView({
                     } ${isSelected && !isToday ? "ring-2 ring-ink" : ""}`}
                   >
                     {cell.day}
-                    {marker && !isToday ? (
-                      <span
-                        aria-hidden
-                        className="absolute -bottom-[1px] h-[5px] w-[5px] rounded-full border border-ink"
-                        style={{ backgroundColor: tagOf(marker.tag).color }}
-                      />
-                    ) : null}
                   </button>
                 );
               })}
