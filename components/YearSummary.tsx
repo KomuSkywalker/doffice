@@ -72,7 +72,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
       <Card
         title="Etiket dağılımı"
-        accent="bg-sky"
+        accent="bg-gold"
         className="anim-rise"
         style={{ animationDelay: "110ms" }}
       >
@@ -109,7 +109,7 @@ export function YearSummary({ year, events, today, onSelect }: Props) {
 
       <Card
         title="Sıradaki"
-        accent="bg-mint"
+        accent="bg-gold"
         className="anim-rise"
         style={{ animationDelay: "180ms" }}
       >

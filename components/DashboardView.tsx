@@ -76,19 +76,19 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
         <Tile
           label="Geciken"
           value={overdue.length}
-          accent="bg-coral"
+          accent="bg-gold"
           delay={60}
         />
         <Tile
           label="Yedi günde"
           value={weekCount}
-          accent="bg-sky"
+          accent="bg-gold"
           delay={120}
         />
         <Tile
           label={`${MONTH_NAMES[parts.month]} ayı`}
           value={monthCount}
-          accent="bg-card"
+          accent="bg-gold"
           delay={180}
         />
       </div>
@@ -96,7 +96,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card
           title="Bugünün programı"
-          accent="bg-sky"
+          accent="bg-gold"
           className="min-w-0"
           action={
             <button
@@ -168,7 +168,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
 
         <div className="min-w-0 space-y-6">
           {overdue.length > 0 ? (
-            <Card title="Gecikenler" accent="bg-coral">
+            <Card title="Gecikenler" accent="bg-gold">
               <ul className="divide-y-2 divide-ink/10 px-2 py-1.5">
                 {overdue.slice(0, 6).map((event) => (
                   <li key={event.id}>
@@ -190,7 +190,7 @@ export function DashboardView({ events, today, onSelect, onToggleDone }: Props) 
             </Card>
           ) : null}
 
-          <Card title="Yaklaşanlar" accent="bg-mint">
+          <Card title="Yaklaşanlar" accent="bg-gold">
             <div className="scroll-thin max-h-[460px] space-y-4 overflow-y-auto px-4 py-4">
               {nextDays.length === 0 ? (
                 <p className="text-sm font-medium text-muted">

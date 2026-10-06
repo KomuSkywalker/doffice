@@ -42,7 +42,7 @@ export function SettingsDialog({
         aria-label="Ayarlar"
         className="anim-rise nb relative w-full max-w-md overflow-hidden rounded-lg bg-card shadow-nb-lg"
       >
-        <header className="flex items-center justify-between border-b-2 border-ink bg-mint px-4 py-2.5">
+        <header className="flex items-center justify-between border-b-2 border-ink bg-gold px-4 py-2.5">
           <h2 className="text-base font-bold tracking-tight">Ayarlar</h2>
           <button
             type="button"

@@ -12,13 +12,6 @@ type Props = {
   onOpenMonth: (month: number) => void;
 };
 
-const HEADER_TONES = [
-  "bg-sky",
-  "bg-gold",
-  "bg-coral",
-  "bg-mint",
-];
-
 export function YearView({
   year,
   index,
@@ -47,9 +40,7 @@ export function YearView({
             className="lift anim-rise nb overflow-hidden rounded-lg bg-card shadow-nb"
           >
             <header
-              className={`flex items-center justify-between border-b-[3px] border-ink px-3 py-2 ${
-                HEADER_TONES[month % HEADER_TONES.length]
-              }`}
+              className="flex items-center justify-between border-b-2 border-ink bg-gold px-3 py-2"
             >
               <button
                 type="button"

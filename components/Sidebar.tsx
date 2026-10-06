@@ -52,7 +52,7 @@ const ITEMS: {
   {
     id: "ay",
     label: "Ajanda",
-    accent: "bg-sky",
+    accent: "bg-gold",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect
@@ -79,7 +79,7 @@ const ITEMS: {
   {
     id: "yil",
     label: "Almanak",
-    accent: "bg-lilac",
+    accent: "bg-gold",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <rect x="3.5" y="3.5" width="7" height="7" rx="1.2" fill="currentColor" />
@@ -161,7 +161,7 @@ export function Sidebar({ view, onSelect, onOpenSettings, settingsOpen }: Props)
         <RailButton
           label="Ayarlar"
           active={settingsOpen}
-          accent="bg-mint"
+          accent="bg-gold"
           onClick={onOpenSettings}
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
