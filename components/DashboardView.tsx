@@ -5,6 +5,7 @@ import { formatLong } from "@/lib/dates";
 import { dayItems, itemSpan } from "@/lib/routines";
 import {
   DEFAULT_COLOR,
+  projectProgress,
   siteName,
   type DofficeEvent,
   type Project,
@@ -172,41 +173,62 @@ export function DashboardView({
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {agenda.slice(0, 8).map((project, position) => (
-                    <li
-                      key={project.id}
-                      style={{ animationDelay: `${position * 40}ms` }}
-                      className="anim-rise"
-                    >
-                      <button
-                        type="button"
-                        onClick={onOpenProjects}
-                        className="row-slide nb-thin flex w-full items-center gap-2.5 rounded-md bg-cream px-3 py-2 text-left"
+                  {agenda.slice(0, 8).map((project, position) => {
+                    const progress = projectProgress(project);
+                    return (
+                      <li
+                        key={project.id}
+                        style={{ animationDelay: `${position * 40}ms` }}
+                        className="anim-rise"
                       >
-                        <Dot color={project.color} size={10} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-bold">
-                            {project.name}
+                        <button
+                          type="button"
+                          onClick={onOpenProjects}
+                          className="row-slide nb-thin block w-full rounded-md bg-cream px-3 py-2 text-left"
+                        >
+                          <span className="flex items-center gap-2.5">
+                            <Dot color={project.color} size={10} />
+                            <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                              {project.name}
+                            </span>
+                            {project.status === "beklemede" ? (
+                              <span className="nb-thin shrink-0 rounded-sm bg-apricot px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                                bekliyor
+                              </span>
+                            ) : null}
+                            {progress.total > 0 ? (
+                              <span className="tabular shrink-0 text-[11px] font-bold text-muted">
+                                {progress.done}/{progress.total}
+                              </span>
+                            ) : null}
                           </span>
-                          {project.note ? (
-                            <span className="block truncate text-[11px] font-medium text-muted">
+
+                          {progress.total > 0 ? (
+                            <span className="mt-1.5 block">
+                              <span className="nb-thin block h-2 overflow-hidden rounded-sm bg-card">
+                                <span
+                                  className="block h-full transition-[width] duration-500 ease-out"
+                                  style={{
+                                    width: `${Math.max(progress.percent, 2)}%`,
+                                    backgroundColor: project.color,
+                                  }}
+                                />
+                              </span>
+                              <span className="mt-1 block truncate text-[11px] font-medium text-muted">
+                                {progress.current
+                                  ? `Sırada: ${progress.current}`
+                                  : "Bütün aşamalar bitti"}
+                              </span>
+                            </span>
+                          ) : project.note ? (
+                            <span className="mt-0.5 block truncate text-[11px] font-medium text-muted">
                               {project.note}
                             </span>
                           ) : null}
-                        </span>
-                        {project.status === "beklemede" ? (
-                          <span className="nb-thin shrink-0 rounded-sm bg-apricot px-1.5 py-0.5 text-[10px] font-bold uppercase">
-                            bekliyor
-                          </span>
-                        ) : null}
-                        {project.files.length > 0 ? (
-                          <span className="tabular shrink-0 text-[11px] font-bold text-muted">
-                            {project.files.length} dosya
-                          </span>
-                        ) : null}
-                      </button>
-                    </li>
-                  ))}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

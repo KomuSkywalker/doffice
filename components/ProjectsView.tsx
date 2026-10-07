@@ -4,12 +4,14 @@ import { useState } from "react";
 import {
   DEFAULT_COLOR,
   PROJECT_STATUSES,
+  projectProgress,
   siteName,
   statusLabel,
   type Project,
   type ProjectDraft,
   type ProjectFile,
   type ProjectStatus,
+  type ProjectStep,
 } from "@/lib/types";
 import { Button, Card, ColorRow, Dot, Field, FieldGroup, inputClass } from "./ui";
 
@@ -22,6 +24,34 @@ type Props = {
 };
 
 type FileRow = { id: string; label: string; url: string };
+type StepRow = { id: string; title: string; done: boolean };
+
+function Progress({ project }: { project: Project }) {
+  const { total, done, current, percent } = projectProgress(project);
+  if (total === 0) {
+    return (
+      <p className="text-[11px] font-medium text-muted">Aşama tanımlanmadı</p>
+    );
+  }
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="min-w-0 truncate text-xs font-bold">
+          {current ? `Sırada: ${current}` : "Bütün aşamalar bitti"}
+        </span>
+        <span className="tabular shrink-0 text-[11px] font-bold text-muted">
+          {done}/{total}
+        </span>
+      </div>
+      <span className="nb-thin block h-3 overflow-hidden rounded-sm bg-cream">
+        <span
+          className="block h-full transition-[width] duration-500 ease-out"
+          style={{ width: `${Math.max(percent, 2)}%`, backgroundColor: project.color }}
+        />
+      </span>
+    </div>
+  );
+}
 
 const STATUS_ACCENT: Record<ProjectStatus, string> = {
   aktif: "bg-mint",
@@ -42,6 +72,8 @@ export function ProjectsView({
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("aktif");
   const [color, setColor] = useState(DEFAULT_COLOR);
+  const [steps, setSteps] = useState<StepRow[]>([]);
+  const [stepTitle, setStepTitle] = useState("");
   const [files, setFiles] = useState<FileRow[]>([]);
   const [fileLabel, setFileLabel] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -56,6 +88,8 @@ export function ProjectsView({
     setNote("");
     setStatus("aktif");
     setColor(DEFAULT_COLOR);
+    setSteps([]);
+    setStepTitle("");
     setFiles([]);
     setFileLabel("");
     setFileUrl("");
@@ -69,11 +103,33 @@ export function ProjectsView({
     setNote(project.note ?? "");
     setStatus(project.status);
     setColor(project.color);
+    setSteps(project.steps.map((step) => ({ ...step })));
+    setStepTitle("");
     setFiles(project.files.map((file) => ({ ...file })));
     setFileLabel("");
     setFileUrl("");
     setError(null);
     setConfirming(null);
+  };
+
+  const addStep = () => {
+    if (stepTitle.trim().length === 0) {
+      setError("Aşama adı gerekli.");
+      return;
+    }
+    setSteps((current) => [
+      ...current,
+      { id: "", title: stepTitle.trim(), done: false },
+    ]);
+    setStepTitle("");
+    setError(null);
+  };
+
+  const toggleStep = (project: Project, stepId: string) => {
+    const next = project.steps.map((step) =>
+      step.id === stepId ? { ...step, done: !step.done } : step,
+    );
+    void onUpdate(project.id, { steps: next });
   };
 
   const addFile = () => {
@@ -100,6 +156,7 @@ export function ProjectsView({
       note: note.trim().length === 0 ? null : note.trim(),
       status,
       color,
+      steps: steps as ProjectStep[],
       files: files as ProjectFile[],
     };
     const ok = editingId
@@ -195,6 +252,56 @@ export function ProjectsView({
               />
             </Field>
 
+            <FieldGroup label="Aşamalar">
+              {steps.length > 0 ? (
+                <ul className="mb-2 space-y-1.5">
+                  {steps.map((step, position) => (
+                    <li
+                      key={`${step.title}-${position}`}
+                      className="nb-thin flex items-center gap-2 rounded-sm bg-cream px-2.5 py-1.5"
+                    >
+                      <span className="tabular shrink-0 text-[11px] font-bold text-muted">
+                        {position + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-xs font-bold">
+                        {step.title}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Aşamayı çıkar"
+                        onClick={() =>
+                          setSteps((current) =>
+                            current.filter((_, index) => index !== position),
+                          )
+                        }
+                        className="chip-pop rounded-sm px-1 text-xs font-bold text-muted hover:bg-coral hover:text-ink"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <input
+                  className={inputClass}
+                  value={stepTitle}
+                  maxLength={80}
+                  placeholder="Örnek: Tapu çıkışı"
+                  onChange={(event) => setStepTitle(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addStep();
+                    }
+                  }}
+                />
+                <Button tone="plain" onClick={addStep}>
+                  Aşama ekle
+                </Button>
+              </div>
+            </FieldGroup>
+
             <FieldGroup label="Dosyalar ve bağlantılar">
               {files.length > 0 ? (
                 <ul className="mb-2 space-y-1.5">
@@ -287,6 +394,33 @@ export function ProjectsView({
                     {project.files.length} dosya
                   </span>
                 </div>
+
+                <Progress project={project} />
+
+                {project.steps.length > 0 ? (
+                  <ul className="space-y-1">
+                    {project.steps.map((step) => (
+                      <li key={step.id}>
+                        <label className="row-slide flex cursor-pointer items-center gap-2 rounded-sm px-1 py-1 hover:bg-tint">
+                          <input
+                            type="checkbox"
+                            checked={step.done}
+                            disabled={pending}
+                            onChange={() => toggleStep(project, step.id)}
+                            className="h-4 w-4 shrink-0 accent-[var(--color-ink)]"
+                          />
+                          <span
+                            className={`min-w-0 flex-1 truncate text-[13px] font-bold ${
+                              step.done ? "text-muted line-through" : ""
+                            }`}
+                          >
+                            {step.title}
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
 
                 {project.note ? (
                   <p className="whitespace-pre-line text-sm font-medium leading-relaxed text-ink-soft">

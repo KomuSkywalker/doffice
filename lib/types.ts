@@ -65,12 +65,19 @@ export type ProjectFile = {
   url: string;
 };
 
+export type ProjectStep = {
+  id: string;
+  title: string;
+  done: boolean;
+};
+
 export type Project = {
   id: string;
   name: string;
   note: string | null;
   status: ProjectStatus;
   color: string;
+  steps: ProjectStep[];
   files: ProjectFile[];
   createdAt: string;
   updatedAt: string;
@@ -81,6 +88,7 @@ export type ProjectDraft = {
   note: string | null;
   status: ProjectStatus;
   color: string;
+  steps: ProjectStep[];
   files: ProjectFile[];
 };
 
@@ -177,6 +185,18 @@ export const PROJECT_STATUS_IDS = PROJECT_STATUSES.map((row) => row.id);
 
 export function statusLabel(id: ProjectStatus) {
   return PROJECT_STATUSES.find((row) => row.id === id)?.label ?? "Aktif";
+}
+
+export function projectProgress(project: Project) {
+  const total = project.steps.length;
+  const done = project.steps.filter((step) => step.done).length;
+  const current = project.steps.find((step) => !step.done)?.title ?? null;
+  return {
+    total,
+    done,
+    current,
+    percent: total === 0 ? 0 : Math.round((done / total) * 100),
+  };
 }
 
 export function siteName(url: string) {

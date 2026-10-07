@@ -45,7 +45,7 @@ altta ayarlar durur.
 - **Ajanda**: büyük ay ızgarası, her hücrede o günün kayıtları renkli
   etiketleriyle görünür.
 - **Projeler**: dosyalar ve projeler. Her projenin adı, durumu (aktif,
-  beklemede, bitti), rengi, notu ve bağlantı listesi olur.
+  beklemede, bitti), rengi, notu, aşama listesi ve bağlantıları olur.
 - **Bildirimler**: gelen randevu talepleri. Onaylanan talep takvime kayıt
   olarak düşer, reddedilen düşmez. Okunmamış talep sayısı ikon üstünde
   rozet olarak görünür.
@@ -82,9 +82,13 @@ yılın bütün günlerini doldurup işareti anlamsız kılardı.
 ## Projeler ve kısayollar
 
 Projeler sekmesinde üzerinde çalıştığın dosyaları tutarsın. Bir projeye ad,
-durum, renk, not ve istediğin kadar bağlantı (Drive klasörü, tapu kaydı,
-ilan sayfası) eklersin. Durumu `bitti` olmayan projeler Ana Sayfa'daki
-**Gündem** panelinde listelenir, en son güncellenen üstte durur.
+durum, renk, not, aşama listesi ve istediğin kadar bağlantı (Drive klasörü,
+tapu kaydı, ilan sayfası) eklersin. Durumu `bitti` olmayan projeler Ana
+Sayfa'daki **Gündem** panelinde listelenir, en son güncellenen üstte durur.
+
+İlerleme aşamalardan çıkar. Proje kartındaki kutucuğu işaretleyince aşama
+biter, ilerleme çubuğu ve `bitti/toplam` sayacı güncellenir. Bitmemiş ilk
+aşama "Sırada" diye yazar, aynı bilgi Gündem panelinde de görünür.
 
 Ana Sayfa'daki **Hızlı erişim** paneline sık kullandığın siteleri
 eklersin. Adres `http` ile başlamıyorsa başına `https://` eklenir, başka

@@ -71,14 +71,19 @@ export function searchAll(source: SearchSource, query: string): SearchHit[] {
     });
   }
 
-  for (const project of source.projects.filter((row) =>
-    hits(needle, row.name, row.note),
-  ).slice(0, KIND_LIMIT)) {
+  for (const project of source.projects
+    .filter(
+      (row) =>
+        hits(needle, row.name, row.note) ||
+        row.steps.some((step) => hits(needle, step.title)),
+    )
+    .slice(0, KIND_LIMIT)) {
+    const next = project.steps.find((step) => !step.done)?.title;
     found.push({
       kind: "proje",
       id: project.id,
       title: project.name,
-      sub: project.status,
+      sub: next ?? project.status,
       color: project.color,
     });
   }

@@ -15,6 +15,7 @@ import {
   type EventDraft,
   type Project,
   type ProjectDraft,
+  type ProjectStep,
   type Shortcut,
   type ShortcutDraft,
   type Routine,
@@ -142,6 +143,7 @@ function normalizeDoc(parsed: unknown): StoreDoc {
         ...item,
         note: typeof item.note === "string" ? item.note : null,
         color: normalizeColor(item.color),
+        steps: Array.isArray(item.steps) ? item.steps : [],
         files: Array.isArray(item.files) ? item.files : [],
       }));
   }
@@ -471,6 +473,14 @@ export function markNotificationsRead() {
   });
 }
 
+function withStepIds(steps: ProjectStep[]) {
+  return steps.map((step) => ({
+    id: step.id || randomUUID(),
+    title: step.title,
+    done: step.done === true,
+  }));
+}
+
 export async function listProjects(): Promise<Project[]> {
   return (await readDoc()).projects;
 }
@@ -484,6 +494,7 @@ export function createProject(draft: ProjectDraft) {
       note: draft.note,
       status: draft.status,
       color: normalizeColor(draft.color),
+      steps: withStepIds(draft.steps),
       files: draft.files.map((file) => ({
         id: file.id || randomUUID(),
         label: file.label,
@@ -507,6 +518,7 @@ export function updateProject(id: string, draft: Partial<ProjectDraft>) {
       ...draft,
       note: draft.note === undefined ? current.note : (draft.note ?? null),
       color: draft.color ? normalizeColor(draft.color) : current.color,
+      steps: withStepIds(draft.steps ?? current.steps),
       files: (draft.files ?? current.files).map((file) => ({
         id: file.id || randomUUID(),
         label: file.label,

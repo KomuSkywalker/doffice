@@ -36,6 +36,7 @@ export async function PATCH(
     note: current.note,
     status: current.status,
     color: current.color,
+    steps: current.steps,
     files: current.files,
     ...(body as Record<string, unknown>),
   };

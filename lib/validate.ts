@@ -12,6 +12,7 @@ import {
   type ProjectDraft,
   type ProjectFile,
   type ProjectStatus,
+  type ProjectStep,
   type Repeat,
   type Routine,
   type RoutineDraft,
@@ -313,6 +314,7 @@ const NAME_LIMIT = 80;
 const URL_LIMIT = 500;
 const PROJECT_NOTE_LIMIT = 600;
 const FILE_LIMIT = 20;
+const STEP_LIMIT = 30;
 
 export function safeUrl(value: unknown) {
   if (typeof value !== "string") return null;
@@ -373,6 +375,30 @@ export function parseProject(input: unknown, partial: boolean): ProjectResult {
       return { ok: false, error: "Renk #rrggbb biçiminde olmalı." };
     }
     draft.color = normalizeColor(color);
+  }
+
+  if (body.steps !== undefined || !partial) {
+    const rows = Array.isArray(body.steps) ? body.steps : [];
+    if (rows.length > STEP_LIMIT) {
+      return { ok: false, error: `En fazla ${STEP_LIMIT} aşama eklenebilir.` };
+    }
+    const steps: ProjectStep[] = [];
+    for (const row of rows) {
+      const item = row as Record<string, unknown>;
+      const title = asTrimmed(item.title);
+      if (title.length === 0) {
+        return { ok: false, error: "Aşama adı boş olamaz." };
+      }
+      if (title.length > NAME_LIMIT) {
+        return { ok: false, error: `Aşama adı en fazla ${NAME_LIMIT} karakter.` };
+      }
+      steps.push({
+        id: typeof item.id === "string" && item.id.length > 0 ? item.id : "",
+        title,
+        done: item.done === true,
+      });
+    }
+    draft.steps = steps;
   }
 
   if (body.files !== undefined || !partial) {
