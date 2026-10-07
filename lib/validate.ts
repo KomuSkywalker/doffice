@@ -4,10 +4,13 @@ import {
   LABEL_LIMIT,
   PROJECT_STATUS_IDS,
   REPEAT_IDS,
+  WIDGET_IDS,
   isHexColor,
   normalizeColor,
+  normalizeLayout,
   siteName,
   type DofficeEvent,
+  type HomeWidget,
   type EventDraft,
   type ProjectDraft,
   type ProjectFile,
@@ -17,6 +20,7 @@ import {
   type Routine,
   type RoutineDraft,
   type ShortcutDraft,
+  type WidgetId,
 } from "./types";
 
 const TITLE_LIMIT = 160;
@@ -182,6 +186,36 @@ export function parseAppointment(input: unknown): AppointmentResult {
       note: note.length === 0 ? null : note,
     },
   };
+}
+
+export type LayoutResult =
+  | { ok: true; value: HomeWidget[] }
+  | { ok: false; error: string };
+
+export function parseLayout(input: unknown): LayoutResult {
+  const rows =
+    typeof input === "object" && input !== null && !Array.isArray(input)
+      ? (input as { layout?: unknown }).layout
+      : input;
+  if (!Array.isArray(rows)) {
+    return { ok: false, error: "Yerleşim listesi gerekli." };
+  }
+  if (rows.length > 20) {
+    return { ok: false, error: "Yerleşim listesi çok uzun." };
+  }
+  for (const row of rows) {
+    const item = row as Record<string, unknown>;
+    if (!WIDGET_IDS.includes(item?.id as WidgetId)) {
+      return { ok: false, error: "Bilinmeyen pencere." };
+    }
+    if (item.column !== "sol" && item.column !== "sag") {
+      return { ok: false, error: "Sütun değeri geçersiz." };
+    }
+    if (typeof item.visible !== "boolean") {
+      return { ok: false, error: "Görünürlük değeri boolean olmalı." };
+    }
+  }
+  return { ok: true, value: normalizeLayout(rows) };
 }
 
 export function isRoutineShape(value: unknown): value is Routine {

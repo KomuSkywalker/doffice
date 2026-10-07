@@ -53,14 +53,24 @@ altta ayarlar durur.
   özeti, etiket dağılımı ve sıradaki kayıtlar.
 - **Gün paneli**: bir güne tıklayınca sağdan açılır. Kayıt ekleme,
   düzenleme, tamamlama ve silme burada yapılır.
-- **Ayarlar**: üç sekme. Bağlantılar (müsaitlik bağlantısı üretme),
-  Rutinler (haftalık sabit bloklar), Sistem (yedek ve çıkış). Rayın en
-  altındaki dişli açar.
+- **Ayarlar**: dört sekme. Bağlantılar (müsaitlik bağlantısı üretme),
+  Rutinler (haftalık sabit bloklar), Ana sayfa (pencere yerleşimi), Sistem
+  (yedek ve çıkış). Rayın en altındaki dişli açar.
 
 Rayın üstündeki logo ana sayfaya döner. Logo `components/Logo.tsx`
 içinde vektör olarak durur, aynı çizim `app/icon.svg` ile sekme
 ikonunda, `app/apple-icon.png` ile iOS kısayolunda ve `public/logo.svg`
 ile paylaşımlarda kullanılır.
+
+## Ana sayfa yerleşimi
+
+Ana sayfadaki pencereleri (Bugünün programı, Gündem, Hızlı erişim) Ayarlar
+penceresindeki **Ana sayfa** sekmesinden dizersin. Her satırda pencerenin
+sütunu (Sol geniş, Sağ dar), sıradaki yeri (yukarı ve aşağı okları) ve
+görünürlüğü (Gizle, Göster) vardır. Değişiklik anında kaydedilir, yerleşim
+veri dosyasında `layout` alanında durur.
+
+Bir sütunda hiç pencere kalmazsa diğer sütun tüm genişliği kullanır.
 
 ## Günlük rutinler
 

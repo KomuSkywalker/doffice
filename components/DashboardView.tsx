@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { formatLong } from "@/lib/dates";
 import { dayItems, itemSpan } from "@/lib/routines";
 import {
@@ -10,8 +10,10 @@ import {
   type DofficeEvent,
   type Project,
   type Routine,
+  type HomeWidget,
   type Shortcut,
   type ShortcutDraft,
+  type WidgetId,
 } from "@/lib/types";
 import { Button, Card, Chip, ColorRow, Dot, inputClass } from "./ui";
 
@@ -20,6 +22,7 @@ type Props = {
   routines: Routine[];
   projects: Project[];
   shortcuts: Shortcut[];
+  layout: HomeWidget[];
   today: string;
   pending: boolean;
   onSelect: (key: string) => void;
@@ -34,6 +37,7 @@ export function DashboardView({
   routines,
   projects,
   shortcuts,
+  layout,
   today,
   pending,
   onSelect,
@@ -74,9 +78,8 @@ export function DashboardView({
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+  const widgets: Record<WidgetId, ReactNode> = {
+    program: (
         <Card
           title="Bugünün programı"
           accent="bg-gold"
@@ -151,8 +154,8 @@ export function DashboardView({
             )}
           </div>
         </Card>
-
-        <div className="min-w-0 space-y-6">
+    ),
+    gundem: (
           <Card
             title="Gündem"
             accent="bg-lilac"
@@ -233,7 +236,8 @@ export function DashboardView({
               )}
             </div>
           </Card>
-
+    ),
+    kisayol: (
           <Card
             title="Hızlı erişim"
             accent="bg-sky"
@@ -326,8 +330,45 @@ export function DashboardView({
               )}
             </div>
           </Card>
+    ),
+  };
+
+  const left = layout.filter((row) => row.visible && row.column === "sol");
+  const right = layout.filter((row) => row.visible && row.column === "sag");
+  const oneColumn = left.length === 0 || right.length === 0;
+
+  if (left.length === 0 && right.length === 0) {
+    return (
+      <p className="nb-thin rounded-md border-dashed bg-tint/60 px-4 py-10 text-center text-sm font-bold">
+        Ana sayfa boş.
+      </p>
+    );
+  }
+
+  return (
+    <div
+      className={`grid items-start gap-6 ${
+        oneColumn ? "" : "xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
+      }`}
+    >
+      {left.length > 0 ? (
+        <div className="min-w-0 space-y-6">
+          {left.map((row) => (
+            <div key={row.id} className="min-w-0">
+              {widgets[row.id]}
+            </div>
+          ))}
         </div>
-      </div>
+      ) : null}
+      {right.length > 0 ? (
+        <div className="min-w-0 space-y-6">
+          {right.map((row) => (
+            <div key={row.id} className="min-w-0">
+              {widgets[row.id]}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

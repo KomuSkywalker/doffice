@@ -142,6 +142,16 @@ export type ShareLink = {
   revokedAt: string | null;
 };
 
+export type WidgetId = "program" | "gundem" | "kisayol";
+
+export type WidgetColumn = "sol" | "sag";
+
+export type HomeWidget = {
+  id: WidgetId;
+  column: WidgetColumn;
+  visible: boolean;
+};
+
 export type StoreDoc = {
   events: DofficeEvent[];
   routines: Routine[];
@@ -150,7 +160,50 @@ export type StoreDoc = {
   appointments: Appointment[];
   notifications: AppNotification[];
   links: ShareLink[];
+  layout: HomeWidget[];
 };
+
+export const WIDGETS: { id: WidgetId; label: string }[] = [
+  { id: "program", label: "Bugünün programı" },
+  { id: "gundem", label: "Gündem" },
+  { id: "kisayol", label: "Hızlı erişim" },
+];
+
+export const WIDGET_IDS = WIDGETS.map((widget) => widget.id);
+
+export const DEFAULT_LAYOUT: HomeWidget[] = [
+  { id: "program", column: "sol", visible: true },
+  { id: "gundem", column: "sag", visible: true },
+  { id: "kisayol", column: "sag", visible: true },
+];
+
+export function widgetLabel(id: WidgetId) {
+  return WIDGETS.find((widget) => widget.id === id)?.label ?? id;
+}
+
+export function normalizeLayout(rows: unknown): HomeWidget[] {
+  const source = Array.isArray(rows) ? rows : [];
+  const seen = new Set<WidgetId>();
+  const layout: HomeWidget[] = [];
+
+  for (const row of source) {
+    const item = row as Partial<HomeWidget>;
+    const id = item?.id as WidgetId;
+    if (!WIDGET_IDS.includes(id) || seen.has(id)) continue;
+    seen.add(id);
+    layout.push({
+      id,
+      column: item.column === "sag" ? "sag" : "sol",
+      visible: item.visible !== false,
+    });
+  }
+
+  for (const fallback of DEFAULT_LAYOUT) {
+    if (!seen.has(fallback.id)) layout.push({ ...fallback });
+  }
+
+  return layout;
+}
 
 export const LINK_LIFETIMES: { days: number; label: string }[] = [
   { days: 0, label: "Süresiz" },

@@ -30,6 +30,7 @@ export default async function HomePage() {
       initialRoutines={doc.routines}
       initialProjects={doc.projects}
       initialShortcuts={doc.shortcuts}
+      initialLayout={doc.layout}
       initialNotifications={doc.notifications}
       initialAppointments={doc.appointments}
       initialLinks={doc.links}

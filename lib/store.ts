@@ -8,10 +8,12 @@ import {
   DEFAULT_ROUTINE_START,
   LEGACY_TAGS,
   linkIsLive,
+  normalizeLayout,
   normalizeColor,
   type Appointment,
   type AppNotification,
   type DofficeEvent,
+  type HomeWidget,
   type EventDraft,
   type Project,
   type ProjectDraft,
@@ -50,6 +52,7 @@ function emptyDoc(): StoreDoc {
     shortcuts: [],
     appointments: [],
     notifications: [],
+    layout: normalizeLayout(null),
     links: [],
   };
 }
@@ -164,6 +167,7 @@ function normalizeDoc(parsed: unknown): StoreDoc {
       note: typeof link.note === "string" ? link.note : null,
     }));
   }
+  doc.layout = normalizeLayout(row.layout);
   return doc;
 }
 
@@ -568,6 +572,14 @@ export function deleteShortcut(id: string) {
     doc.shortcuts = doc.shortcuts.filter((row) => row.id !== id);
     await writeDoc(doc);
     return true;
+  });
+}
+
+export function saveLayout(layout: HomeWidget[]) {
+  return mutate(async (doc) => {
+    doc.layout = normalizeLayout(layout);
+    await writeDoc(doc);
+    return doc.layout;
   });
 }
 

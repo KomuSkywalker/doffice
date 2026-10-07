@@ -18,6 +18,7 @@ import type {
   AppNotification,
   DofficeEvent,
   EventDraft,
+  HomeWidget,
   Project,
   ProjectDraft,
   Routine,
@@ -42,6 +43,7 @@ type Props = {
   initialRoutines: Routine[];
   initialProjects: Project[];
   initialShortcuts: Shortcut[];
+  initialLayout: HomeWidget[];
   initialNotifications: AppNotification[];
   initialAppointments: Appointment[];
   initialLinks: ShareLink[];
@@ -61,6 +63,7 @@ export function Doffice({
   initialRoutines,
   initialProjects,
   initialShortcuts,
+  initialLayout,
   initialNotifications,
   initialAppointments,
   initialLinks,
@@ -76,6 +79,7 @@ export function Doffice({
   const [routines, setRoutines] = useState(initialRoutines);
   const [projects, setProjects] = useState(initialProjects);
   const [shortcuts, setShortcuts] = useState(initialShortcuts);
+  const [layout, setLayout] = useState(initialLayout);
   const [links, setLinks] = useState(initialLinks);
   const [notifications, setNotifications] =
     useState<AppNotification[]>(initialNotifications);
@@ -233,6 +237,20 @@ export function Doffice({
         },
       });
     },
+    [runWrite],
+  );
+
+  const saveLayout = useCallback(
+    (next: HomeWidget[]) =>
+      runWrite({
+        path: "/api/yerlesim",
+        init: { method: "PUT", body: JSON.stringify({ layout: next }) },
+        onDone: (payload) => {
+          const data = payload as { layout: HomeWidget[] };
+          setLayout(data.layout);
+          setToast({ tone: "ok", text: "Yerleşim kaydedildi." });
+        },
+      }),
     [runWrite],
   );
 
@@ -651,6 +669,7 @@ export function Doffice({
                 routines={routines}
                 projects={projects}
                 shortcuts={shortcuts}
+                layout={layout}
                 today={today}
                 pending={pending}
                 onSelect={openDay}
@@ -738,6 +757,8 @@ export function Doffice({
         <SettingsDialog
           links={links}
           routines={routines}
+          layout={layout}
+          onSaveLayout={saveLayout}
           total={events.length}
           pending={pending}
           onClose={() => setSettingsOpen(false)}

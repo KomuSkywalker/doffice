@@ -4,24 +4,29 @@ import { useEffect, useState } from "react";
 import {
   LINK_LIFETIMES,
   linkIsLive,
+  widgetLabel,
+  type HomeWidget,
   type Routine,
   type RoutineDraft,
+  type WidgetColumn,
   type ShareLink,
 } from "@/lib/types";
 import { RoutineManager } from "./RoutineManager";
 import { Button, Field, inputClass } from "./ui";
 
-type TabId = "baglanti" | "rutin" | "sistem";
+type TabId = "baglanti" | "rutin" | "anasayfa" | "sistem";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "baglanti", label: "Bağlantılar" },
   { id: "rutin", label: "Rutinler" },
+  { id: "anasayfa", label: "Ana sayfa" },
   { id: "sistem", label: "Sistem" },
 ];
 
 type Props = {
   links: ShareLink[];
   routines: Routine[];
+  layout: HomeWidget[];
   total: number;
   pending: boolean;
   onClose: () => void;
@@ -35,12 +40,14 @@ type Props = {
   onCreateRoutine: (draft: RoutineDraft) => Promise<boolean>;
   onUpdateRoutine: (id: string, draft: Partial<RoutineDraft>) => Promise<boolean>;
   onDeleteRoutine: (id: string) => Promise<boolean>;
+  onSaveLayout: (next: HomeWidget[]) => Promise<boolean>;
   onLogout: () => void;
 };
 
 export function SettingsDialog({
   links,
   routines,
+  layout,
   total,
   pending,
   onClose,
@@ -50,6 +57,7 @@ export function SettingsDialog({
   onCreateRoutine,
   onUpdateRoutine,
   onDeleteRoutine,
+  onSaveLayout,
   onLogout,
 }: Props) {
   const [tab, setTab] = useState<TabId>("baglanti");
@@ -95,6 +103,32 @@ export function SettingsDialog({
     } else {
       setError("Bağlantı oluşturulamadı.");
     }
+  };
+
+  const moveWidget = (index: number, delta: number) => {
+    const target = index + delta;
+    if (target < 0 || target >= layout.length) return;
+    const next = layout.map((row) => ({ ...row }));
+    const [picked] = next.splice(index, 1);
+    next.splice(target, 0, picked);
+    void onSaveLayout(next);
+  };
+
+  const setColumn = (index: number, column: WidgetColumn) => {
+    if (layout[index].column === column) return;
+    void onSaveLayout(
+      layout.map((row, position) =>
+        position === index ? { ...row, column } : { ...row },
+      ),
+    );
+  };
+
+  const toggleWidget = (index: number) => {
+    void onSaveLayout(
+      layout.map((row, position) =>
+        position === index ? { ...row, visible: !row.visible } : { ...row },
+      ),
+    );
   };
 
   const liveLinks = links.filter((link) => linkIsLive(link));
@@ -303,6 +337,85 @@ export function SettingsDialog({
               onUpdate={onUpdateRoutine}
               onDelete={onDeleteRoutine}
             />
+          ) : null}
+
+          {tab === "anasayfa" ? (
+            <ul className="space-y-2">
+              {layout.map((row, index) => (
+                <li
+                  key={row.id}
+                  className={`nb-thin rounded-md px-3 py-2.5 ${
+                    row.visible ? "bg-card" : "bg-tint"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="tabular shrink-0 text-[11px] font-bold text-muted">
+                        {index + 1}
+                      </span>
+                      <span
+                        className={`truncate text-sm font-bold ${
+                          row.visible ? "" : "text-muted line-through"
+                        }`}
+                      >
+                        {widgetLabel(row.id)}
+                      </span>
+                    </span>
+
+                    <span className="flex shrink-0 flex-wrap items-center gap-2">
+                      <span className="flex gap-1">
+                        {(["sol", "sag"] as WidgetColumn[]).map((column) => (
+                          <button
+                            key={column}
+                            type="button"
+                            disabled={pending}
+                            aria-pressed={row.column === column}
+                            onClick={() => setColumn(index, column)}
+                            className={`chip-pop nb-thin rounded-sm px-2 py-1 text-[11px] font-bold ${
+                              row.column === column
+                                ? "bg-gold"
+                                : "bg-card hover:bg-cream"
+                            }`}
+                          >
+                            {column === "sol" ? "Sol" : "Sağ"}
+                          </button>
+                        ))}
+                      </span>
+
+                      <span className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={pending || index === 0}
+                          aria-label={`${widgetLabel(row.id)} yukarı`}
+                          onClick={() => moveWidget(index, -1)}
+                          className="chip-pop nb-thin rounded-sm bg-card px-2 py-1 text-[11px] font-bold hover:bg-cream disabled:opacity-40"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={pending || index === layout.length - 1}
+                          aria-label={`${widgetLabel(row.id)} aşağı`}
+                          onClick={() => moveWidget(index, 1)}
+                          className="chip-pop nb-thin rounded-sm bg-card px-2 py-1 text-[11px] font-bold hover:bg-cream disabled:opacity-40"
+                        >
+                          ↓
+                        </button>
+                      </span>
+
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => toggleWidget(index)}
+                        className="chip-pop nb-thin rounded-sm bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-cream"
+                      >
+                        {row.visible ? "Gizle" : "Göster"}
+                      </button>
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           ) : null}
 
           {tab === "sistem" ? (
